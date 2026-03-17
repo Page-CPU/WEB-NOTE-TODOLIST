@@ -63,8 +63,10 @@ export function updateLineNumbers() {
 
 export function updateEditorMeta() {
   const value = dom.noteArea.value;
-  dom.charCount.textContent = `${value.replace(/\n/g, "").length} 字`;
-  dom.lineCount.textContent = `${value ? value.split("\n").length : 0} 行`;
+  const chars = value.replace(/\s/g, "").length;
+  const lines = value ? value.split("\n").length : 0;
+  dom.charCount.textContent = `${chars} 字`;
+  dom.lineCount.textContent = `${lines} 行`;
 }
 
 export function setEditorMode(mode) {

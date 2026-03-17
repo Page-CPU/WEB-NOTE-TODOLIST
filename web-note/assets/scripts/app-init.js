@@ -104,6 +104,29 @@ if (dom.copyLinkBtn) {
   });
 }
 
+// ── 导出 Markdown ────────────────────────────────────────────────────────────
+
+const exportBtn = document.getElementById("export-btn");
+if (exportBtn) {
+  if (!PAGE_ID) exportBtn.classList.add("hidden");
+  exportBtn.addEventListener("click", () => {
+    const note = dom.noteArea?.value ?? "";
+    const todoLines = state.todos.map((t) => `- [${t.done ? "x" : " "}] ${t.text}`).join("\n");
+    const content = todoLines
+      ? `${note}\n\n---\n\n## 任务\n\n${todoLines}\n`
+      : note;
+    const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${PAGE_ID || "note"}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    const toastEl = showToast("已导出");
+    setTimeout(() => removeToast(toastEl), 2000);
+  });
+}
+
 // ── 全局快捷键 ────────────────────────────────────────────────────────────────
 
 document.addEventListener("keydown", (e) => {
@@ -178,6 +201,26 @@ if (dom.noteArea && dom.editorLineNumbers) {
 // ── 编辑器输入 ────────────────────────────────────────────────────────────────
 
 if (dom.noteArea) {
+  dom.noteArea.addEventListener("keydown", (e) => {
+    // Ctrl/Cmd + S: 强制立即保存
+    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      e.preventDefault();
+      persistNow("已保存");
+      return;
+    }
+
+    // Tab: 插入两个空格而非跳出
+    if (e.key === "Tab" && !e.shiftKey) {
+      e.preventDefault();
+      const start = dom.noteArea.selectionStart;
+      const end = dom.noteArea.selectionEnd;
+      const value = dom.noteArea.value;
+      dom.noteArea.value = value.substring(0, start) + "  " + value.substring(end);
+      dom.noteArea.selectionStart = dom.noteArea.selectionEnd = start + 2;
+      dom.noteArea.dispatchEvent(new Event("input"));
+      return;
+    }
+  });
   dom.noteArea.addEventListener("input", () => {
     updateEditorMeta();
     updateLineNumbers();
