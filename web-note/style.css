@@ -2483,7 +2483,12 @@ body[data-editor-density="compact"] .editor-line-numbers {
   color: var(--text-tertiary);
 }
 
-.pages-item { border-radius: 10px; }
+.pages-item {
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
 .pages-item.is-current {
   background: rgba(var(--cp-accent-rgb), 0.06);
@@ -2492,7 +2497,9 @@ body[data-editor-density="compact"] .editor-line-numbers {
 .pages-item-link {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 2px;
+  min-width: 0;
   padding: 10px 12px;
   border-radius: 10px;
   text-decoration: none;
@@ -2530,4 +2537,34 @@ button.status-brand {
 
 button.status-brand:hover {
   color: var(--accent);
+}
+
+/* ── Pages Item Delete ──────────────────────────────────────────────────── */
+
+.pages-item-del {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.pages-item:hover .pages-item-del {
+  opacity: 1;
+}
+
+.pages-item-del:hover {
+  background: rgba(var(--cp-danger-rgb), 0.1);
+  color: var(--cp-red-500);
 }

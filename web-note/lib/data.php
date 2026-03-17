@@ -580,3 +580,29 @@ function stringLength(string $value): int
 
     return strlen($value);
 }
+
+function deletePage(string $pageId): void
+{
+    global $dataRoot;
+
+    $dirPath = pageDir($pageId);
+    if (!is_dir($dirPath)) {
+        sendJson(404, ['detail' => 'Page not found']);
+    }
+
+    $trashDir = rtrim($dataRoot, "/\\") . DIRECTORY_SEPARATOR . '.trash';
+    ensureDirectory($trashDir, 'Cannot create trash directory');
+
+    $trashTarget = $trashDir . DIRECTORY_SEPARATOR . $pageId . '_' . gmdate('Ymd\THis');
+
+    if (!@rename($dirPath, $trashTarget)) {
+        sendJson(500, ['detail' => 'Cannot move page to trash']);
+    }
+
+    $lockPath = lockFile($pageId);
+    if (is_file($lockPath)) {
+        @unlink($lockPath);
+    }
+
+    sendJson(200, ['page_id' => $pageId, 'deleted' => true]);
+}

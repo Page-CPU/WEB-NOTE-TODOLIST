@@ -133,6 +133,15 @@ function route(string $path, string $method): void
         savePage($pageId);
     }
 
+    if (preg_match('#^/api/pages/([A-Za-z0-9]{1,32})/delete$#', $path, $match)) {
+        $pageId = $match[1];
+        assertValidPageId($pageId);
+        if ($method !== 'POST') {
+            sendJson(405, ['detail' => 'Method not allowed']);
+        }
+        deletePage($pageId);
+    }
+
     if (preg_match('#^/([A-Za-z0-9]{1,32})$#', $path, $match)) {
         $pageId = $match[1];
         assertValidPageId($pageId);
