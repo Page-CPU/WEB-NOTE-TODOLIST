@@ -516,6 +516,47 @@ body,
   box-shadow: var(--shadow-sm);
 }
 
+/* 四象限按钮颜色 */
+.composer-options .quadrant-chip[data-quadrant="eliminate"] {
+  background: rgba(var(--cp-slate-rgb), 0.08);
+  color: var(--text-secondary);
+}
+.composer-options .quadrant-chip[data-quadrant="eliminate"]:hover,
+.composer-options .quadrant-chip[data-quadrant="eliminate"].active {
+  background: rgba(var(--cp-slate-rgb), 0.16);
+  color: var(--text-primary);
+}
+
+.composer-options .quadrant-chip[data-quadrant="plan"] {
+  background: rgba(var(--cp-accent-rgb), 0.08);
+  color: var(--cp-teal-500);
+}
+.composer-options .quadrant-chip[data-quadrant="plan"]:hover,
+.composer-options .quadrant-chip[data-quadrant="plan"].active {
+  background: rgba(var(--cp-accent-rgb), 0.16);
+  color: var(--cp-teal-600);
+}
+
+.composer-options .quadrant-chip[data-quadrant="delegate"] {
+  background: rgba(var(--cp-warning-rgb), 0.08);
+  color: var(--cp-amber-500);
+}
+.composer-options .quadrant-chip[data-quadrant="delegate"]:hover,
+.composer-options .quadrant-chip[data-quadrant="delegate"].active {
+  background: rgba(var(--cp-warning-rgb), 0.16);
+  color: var(--cp-amber-700);
+}
+
+.composer-options .quadrant-chip[data-quadrant="do"] {
+  background: rgba(var(--cp-danger-rgb), 0.08);
+  color: var(--cp-red-500);
+}
+.composer-options .quadrant-chip[data-quadrant="do"]:hover,
+.composer-options .quadrant-chip[data-quadrant="do"].active {
+  background: rgba(var(--cp-danger-rgb), 0.16);
+  color: var(--cp-red-500);
+}
+
 /* ───────────────────────────────────────────────────────────────────────────
    6. Todo Section (去卡片化)
    ─────────────────────────────────────────────────────────────────────────── */
@@ -1224,8 +1265,8 @@ body,
   width: 42px;
   padding: var(--space-4) 6px var(--space-4) 10px;
   font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: var(--leading-loose);
+  font-size: 13px;
+  line-height: 27.84px;
   font-variant-numeric: tabular-nums;
   color: rgba(var(--cp-slate-rgb), var(--opacity-72));
   background: rgba(var(--cp-ink-rgb), var(--opacity-5));
@@ -1250,7 +1291,7 @@ body,
   color: var(--text-primary);
   font-family: var(--font-editor);
   font-size: 14px;
-  line-height: var(--leading-loose);
+  line-height: 27.84px;
   caret-color: var(--color-accent);
   white-space: pre;
   overflow: auto;
@@ -1271,12 +1312,12 @@ body[data-editor-density="compact"] .editor-area {
   background-size: 100% 23.7px, 100% 100%;
   background-position: 0 var(--space-4), 0 0;
   font-size: 14px;
-  line-height: 1.54;
+  line-height: 23.7px;
 }
 
 body[data-editor-density="compact"] .editor-line-numbers {
-  font-size: 10px;
-  line-height: 1.54;
+  line-height: 23.7px;
+  font-size: 13px;
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -2527,16 +2568,20 @@ body[data-editor-density="compact"] .editor-line-numbers {
 
 button.status-brand {
   all: unset;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
   font-family: "Fraunces", serif;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text-primary);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 button.status-brand:hover {
-  color: var(--accent);
+  color: var(--color-accent);
 }
 
 /* ── Pages Item Delete ──────────────────────────────────────────────────── */
