@@ -26,7 +26,7 @@ export const URGENCY_OPTIONS = {
   low:      { label: "不急",     order: 0, urgent: false },
   normal:   { label: "普通",     order: 1, urgent: false },
   high:     { label: "紧急",     order: 2, urgent: true  },
-  critical: { label: "非常紧急", order: 3, urgent: true  },
+  critical: { label: "很紧急",   order: 3, urgent: true  },
 };
 
 export const IMPORTANCE_OPTIONS = {
@@ -35,8 +35,8 @@ export const IMPORTANCE_OPTIONS = {
 };
 
 export const QUADRANT_OPTIONS = {
-  eliminate: { label: "不急",     urgency: "low",      importance: "supporting" },
-  plan:      { label: "普通",     urgency: "normal",   importance: "important"  },
-  delegate:  { label: "紧急",     urgency: "high",     importance: "supporting" },
-  do:        { label: "非常紧急", urgency: "critical", importance: "important"  },
+  eliminate: { label: "不急不重要", urgency: "low",      importance: "supporting" },
+  plan:      { label: "重要不急",   urgency: "normal",   importance: "important"  },
+  delegate:  { label: "急但不重要", urgency: "high",     importance: "supporting" },
+  do:        { label: "重要且紧急", urgency: "critical", importance: "important"  },
 };
