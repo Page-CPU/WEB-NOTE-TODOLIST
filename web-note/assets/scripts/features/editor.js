@@ -2,6 +2,7 @@ import { EDITOR_DENSITY_KEY, MAIN_VIEW_KEY } from "../core/config.js";
 import { state } from "../core/state.js";
 import { normalizeEditorDensity, normalizeMainView } from "../core/storage.js";
 import { dom } from "../ui/dom.js";
+import { markdownToHtml } from "./markdown.js";
 
 // ── 编辑器密度 ────────────────────────────────────────────────────────────────
 
@@ -64,4 +65,27 @@ export function updateEditorMeta() {
   const value = dom.noteArea.value;
   dom.charCount.textContent = `${value.replace(/\n/g, "").length} 字`;
   dom.lineCount.textContent = `${value ? value.split("\n").length : 0} 行`;
+}
+
+export function setEditorMode(mode) {
+  const isPreview = mode === "preview";
+  const previewEl = document.getElementById("editor-preview");
+  const areaWrap = document.querySelector(".editor-area-wrap");
+  const toggleGroup = document.getElementById("preview-toggle");
+
+  if (!previewEl || !areaWrap) return;
+
+  if (isPreview) {
+    const noteArea = document.getElementById("note-area");
+    previewEl.innerHTML = markdownToHtml(noteArea?.value ?? "");
+  }
+
+  areaWrap.classList.toggle("hidden", isPreview);
+  previewEl.classList.toggle("hidden", !isPreview);
+
+  if (toggleGroup) {
+    toggleGroup.querySelectorAll(".preview-chip").forEach((chip) => {
+      chip.classList.toggle("active", chip.dataset.mode === mode);
+    });
+  }
 }

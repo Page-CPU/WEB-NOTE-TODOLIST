@@ -13,7 +13,7 @@ import { loadPageData, persistNow, queueSave, saveWithBeacon } from "./core/api.
 import { setSaveStatus, setLastModified, markLastModifiedNow } from "./features/save-status.js";
 import { setTheme, applyThemeFromPreference } from "./features/theme.js";
 import {
-  setEditorDensity, setMainView, updateLineNumbers, updateEditorMeta,
+  setEditorDensity, setMainView, setEditorMode, updateLineNumbers, updateEditorMeta,
 } from "./features/editor.js";
 import { addTodo, setFilter, setSelectedQuadrant } from "./features/todos.js";
 import { initMobileNavigation, setMobileTasksView } from "./features/navigation.js";
@@ -47,6 +47,14 @@ if (dom.closeQuadrantsBtn) {
 if (dom.densityToggle) {
   dom.densityToggle.querySelectorAll(".density-chip").forEach((chip) => {
     chip.addEventListener("click", () => setEditorDensity(chip.dataset.density));
+  });
+}
+
+// ── 编辑器预览切换 ──────────────────────────────────────────────────────────
+const previewToggle = document.getElementById("preview-toggle");
+if (previewToggle) {
+  previewToggle.querySelectorAll(".preview-chip").forEach((chip) => {
+    chip.addEventListener("click", () => setEditorMode(chip.dataset.mode));
   });
 }
 
@@ -173,6 +181,10 @@ if (dom.noteArea) {
   dom.noteArea.addEventListener("input", () => {
     updateEditorMeta();
     updateLineNumbers();
+    const previewEl = document.getElementById("editor-preview");
+    if (previewEl && !previewEl.classList.contains("hidden")) {
+      setEditorMode("preview");
+    }
     markLastModifiedNow();
     queueSave("已保存");
   });

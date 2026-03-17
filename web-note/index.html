@@ -111,6 +111,10 @@
                   <button class="density-chip active" type="button" data-density="standard">&#x6807;&#x51C6;</button>
                   <button class="density-chip" type="button" data-density="compact">&#x7D27;&#x51D1;</button>
                 </div>
+                <div class="preview-toggle" id="preview-toggle" role="group" aria-label="&#x7F16;&#x8F91;&#x5668;&#x6A21;&#x5F0F;">
+                  <button class="preview-chip active" type="button" data-mode="edit">&#x7F16;&#x8F91;</button>
+                  <button class="preview-chip" type="button" data-mode="preview">&#x9884;&#x89C8;</button>
+                </div>
                 <span class="meta-chip" id="char-count">0 &#x5B57;</span>
                 <span class="meta-chip" id="line-count">0 &#x884C;</span>
               </div>
@@ -128,6 +132,7 @@
               wrap="off"
             ></textarea>
             </div>
+            <div class="editor-preview hidden" id="editor-preview"></div>
           </div>
         </section>
 

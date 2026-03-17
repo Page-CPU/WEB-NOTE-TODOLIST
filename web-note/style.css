@@ -2249,3 +2249,89 @@ body[data-editor-density="compact"] .editor-line-numbers {
 [data-theme="dark"] .quadrant-list-wrap::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, var(--opacity-16));
 }
+
+/* ── Editor Preview ─────────────────────────────────────────────────────── */
+
+.preview-toggle {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.preview-chip {
+  padding: 3px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.preview-chip.active {
+  background: var(--surface-solid);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(var(--cp-ink-rgb), 0.08);
+}
+
+.editor-preview {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: var(--text-primary);
+}
+
+.editor-preview h1 { font-size: 22px; margin: 0 0 12px; font-weight: 700; }
+.editor-preview h2 { font-size: 18px; margin: 16px 0 8px; font-weight: 700; }
+.editor-preview h3 { font-size: 15px; margin: 12px 0 6px; font-weight: 600; }
+
+.editor-preview p { margin: 0 0 10px; }
+
+.editor-preview ul,
+.editor-preview ol { margin: 0 0 10px; padding-left: 22px; }
+.editor-preview li { margin-bottom: 4px; }
+
+.editor-preview code {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 13px;
+}
+
+.editor-preview pre {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  overflow-x: auto;
+}
+
+.editor-preview pre code {
+  padding: 0;
+  background: none;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.editor-preview hr {
+  border: none;
+  border-top: 1px solid var(--border-default, var(--border-color-default));
+  margin: 16px 0;
+}
+
+.editor-preview a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.editor-preview a:hover {
+  color: var(--accent-hover, var(--accent-strong));
+}
