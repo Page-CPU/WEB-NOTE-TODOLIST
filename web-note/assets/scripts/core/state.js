@@ -23,6 +23,7 @@ export const state = {
   highlightTodoTimer: null,
   activeQuadrantMenu: null,
   editingTodoId: "",
+  editingContext: "",
   draggedTodoId: "",
   pendingRevealTodoId: "",
   undoToastTimer: null,

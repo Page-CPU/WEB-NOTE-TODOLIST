@@ -68,12 +68,23 @@ export function markdownToHtml(src) {
   return out.join("\n");
 }
 
+function sanitizeHref(url) {
+  const trimmed = url.trim().toLowerCase();
+  if (trimmed.startsWith("http:") || trimmed.startsWith("https:") || trimmed.startsWith("mailto:")) {
+    return url.trim();
+  }
+  return "";
+}
+
 function inline(text) {
   return text
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+      const safe = sanitizeHref(href);
+      return safe ? `<a href="${safe}" target="_blank" rel="noopener">${label}</a>` : label;
+    });
 }
 
 function escapeHtml(str) {

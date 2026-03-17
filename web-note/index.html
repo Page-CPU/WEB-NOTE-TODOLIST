@@ -35,37 +35,36 @@
           <!-- Status Bar: 替代原 brand-block，更克制，承载关键状态 -->
           <div class="status-bar">
             <div class="status-row-top">
-              <button type="button" class="status-brand" id="pages-toggle-btn" title="&#x6211;&#x7684;&#x9875;&#x9762;">A Note</button>
-              <div class="status-actions">
-                <button type="button" class="icon-btn" id="copy-link-btn" title="&#x5907;&#x4EFD;&#x672C;&#x9875;&#x94FE;&#x63A5;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                  </svg>
-                </button>
-                <button type="button" class="icon-btn" id="export-btn" title="&#x5BFC;&#x51FA;&#x4E3A; Markdown">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                </button>
-                <button type="button" class="theme-chip" id="theme-toggle-btn" title="&#x5207;&#x6362;&#x4E3B;&#x9898;" aria-label="&#x5207;&#x6362;&#x4E3B;&#x9898;">&#x6697;&#x8272;</button>
-              </div>
+              <button type="button" class="status-brand" id="pages-toggle-btn" title="我的页面">A Note</button>
+              <code class="page-chip" id="page-code">/loading</code>
             </div>
             <div class="status-row-bottom">
-              <code class="page-chip" id="page-code">/loading</code>
               <div class="save-indicator" id="save-indicator">
                 <div class="save-dot"></div>
-                <span id="save-label">&#x81EA;&#x52A8;&#x4FDD;&#x5B58;</span>
+                <span id="save-label">自动保存</span>
               </div>
               <span class="meta-chip" id="last-modified">--</span>
+              <span class="status-spacer"></span>
+              <button type="button" class="icon-btn" id="copy-link-btn" title="备份本页链接">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+              </button>
+              <button type="button" class="icon-btn" id="export-btn" title="导出为 Markdown">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+              </button>
+              <button type="button" class="theme-chip" id="theme-toggle-btn" title="切换主题" aria-label="切换主题">暗色</button>
             </div>
           </div>
 
           <section class="composer" aria-label="&#x6DFB;&#x52A0;&#x4EFB;&#x52A1;">
             <div class="composer-row">
-              <input id="todo-input" type="text" placeholder="&#x6DFB;&#x52A0;&#x4EFB;&#x52A1;&#x2026;" maxlength="120" autocomplete="off" />
+              <textarea id="todo-input" rows="1" placeholder="&#x6DFB;&#x52A0;&#x4EFB;&#x52A1;&#x2026;" maxlength="120" autocomplete="off"></textarea>
               <button class="add-btn" id="add-btn" type="button" title="&#x6DFB;&#x52A0; (Enter)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <line x1="12" y1="5" x2="12" y2="19" />
@@ -88,11 +87,11 @@
               <div class="todo-toolbar-main">
                 <span class="count-badge" id="count-badge">0</span>
                 <span class="todo-label">&#x5F85;&#x529E;</span>
+                <button class="clear-done-btn" id="clear-done-btn" type="button">&#x6E05;&#x9664;&#x5DF2;&#x5B8C;&#x6210;</button>
               </div>
               <div class="todo-toolbar-actions">
                 <button class="quadrant-entry-btn" id="open-quadrants-btn" type="button">&#x56DB;&#x8C61;&#x9650;</button>
                 <button class="mobile-matrix-toggle" id="mobile-matrix-toggle" type="button">&#x77E9;&#x9635;&#x89C6;&#x56FE;</button>
-                <button class="clear-done-btn" id="clear-done-btn" type="button">&#x6E05;&#x9664;</button>
               </div>
             </div>
             <div class="filter-tabs">
@@ -110,12 +109,8 @@
       <main class="main" id="main">
         <section class="editor-frame" id="editor-frame">
           <header class="editor-header">
-            <div class="section-copy">
-              <p class="section-kicker">Workspace</p>
-              <h2>&#x5DE5;&#x4F5C;&#x8BB0;&#x5F55;</h2>
-              <p class="section-description">&#x8BB0;&#x5F55;&#x8FC7;&#x7A0B;&#x3001;&#x65B9;&#x6848;&#x3001;&#x6E05;&#x5355;&#x3001;&#x53D1;&#x7968;&#x4FE1;&#x606F;&#x6216;&#x4EFB;&#x4F55;&#x9700;&#x8981;&#x6C89;&#x6DC0;&#x7684;&#x5185;&#x5BB9;&#x3002;Tab &#x63D2;&#x5165;&#x7F29;&#x8FDB;&#xFF0C;Ctrl+S &#x7ACB;&#x5373;&#x4FDD;&#x5B58;&#x3002;</p>
-            </div>
-
+            <h2 class="editor-frame-title">&#x7B14;&#x8BB0;</h2>
+            <span class="editor-header-spacer"></span>
             <div class="editor-status">
               <div class="editor-meta">
                 <div class="density-toggle" id="density-toggle" role="group" aria-label="&#x5DE5;&#x4F5C;&#x8BB0;&#x5F55;&#x663E;&#x793A;&#x5BC6;&#x5EA6;">
@@ -150,16 +145,10 @@
         <!-- Quadrant Frame: 桌面端直接切换，移动端作为任务页次级视图 -->
         <section class="quadrant-frame hidden" id="quadrant-frame">
           <header class="quadrant-frame-header">
-            <div class="section-copy">
-              <p class="section-kicker">Matrix View</p>
-              <h2>&#x56DB;&#x8C61;&#x9650;</h2>
-              <p class="section-description">&#x628A;&#x5F53;&#x524D;&#x5F85;&#x529E;&#x6309;&#x7D27;&#x6025;&#x4E0E;&#x91CD;&#x8981;&#x7A0B;&#x5EA6;&#x62C6;&#x5206;&#x67E5;&#x770B;&#x3002;</p>
-              <p class="quadrant-tip">&#x91CD;&#x8981;&#x4E14;&#x7D27;&#x6025;&#x2192;&#x4F18;&#x5148;&#x505A;&#xFF1B;&#x91CD;&#x8981;&#x4E0D;&#x7D27;&#x6025;&#x2192;&#x89C4;&#x5212;&#x505A;&#xFF1B;&#x7D27;&#x6025;&#x4E0D;&#x91CD;&#x8981;&#x2192;&#x59D4;&#x6258;&#xFF1B;&#x90FD;&#x4E0D;&#x2192;&#x5EF6;&#x540E;&#x6216;&#x5220;&#x9664;&#x3002;</p>
-            </div>
-            <div class="quadrant-frame-actions">
-              <span class="meta-chip" id="quadrant-summary">&#x8FDB;&#x884C;&#x4E2D; 0</span>
-              <button class="quadrant-close-btn" id="close-quadrants-btn" type="button">&#x8FD4;&#x56DE;&#x8BB0;&#x5F55;</button>
-            </div>
+            <h2 class="quadrant-frame-title">&#x56DB;&#x8C61;&#x9650;</h2>
+            <span class="meta-chip" id="quadrant-summary">&#x8FDB;&#x884C;&#x4E2D; 0</span>
+            <span class="quadrant-header-spacer"></span>
+            <button class="quadrant-close-btn" id="close-quadrants-btn" type="button">&#x8FD4;&#x56DE;&#x8BB0;&#x5F55;</button>
           </header>
           <div class="quadrant-frame-body">
             <div class="quadrant-board" id="quadrant-board">

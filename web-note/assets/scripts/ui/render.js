@@ -119,7 +119,7 @@ function shouldIgnoreEditTrigger(target) {
 // ── Todo 节点创建 ─────────────────────────────────────────────────────────────
 
 function createTodoNode(todo, options = {}) {
-  const { showQuadrantBadge = true, draggableInQuadrants = false, allowInlineEdit = true } = options;
+  const { showQuadrantBadge = true, draggableInQuadrants = false, allowInlineEdit = true, editContext = "sidebar" } = options;
 
   const li = document.createElement("li");
   li.className = `todo-item${todo.done ? " done" : ""}`;
@@ -131,7 +131,7 @@ function createTodoNode(todo, options = {}) {
     li.classList.add("is-new");
   }
 
-  if (draggableInQuadrants) {
+  if (draggableInQuadrants && !todo.done) {
     li.draggable = true;
     li.classList.add("is-draggable");
     li.addEventListener("dragstart", () => {
@@ -204,14 +204,14 @@ function createTodoNode(todo, options = {}) {
   const topRow = document.createElement("div");
   topRow.className = "todo-main-row";
 
-  if (allowInlineEdit && state.editingTodoId === todo.id) {
-    const input = document.createElement("input");
-    input.type = "text";
+  if (allowInlineEdit && state.editingTodoId === todo.id && state.editingContext === editContext) {
+    const input = document.createElement("textarea");
     input.className = "todo-inline-input";
+    input.rows = 1;
     input.value = todo.text;
     input.placeholder = "编辑任务内容";
     input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") finishEditingTodo(todo.id, input.value, true);
+      if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); finishEditingTodo(todo.id, input.value, true); }
       if (event.key === "Escape") finishEditingTodo(todo.id, input.value, false);
     });
     input.addEventListener("blur", () => finishEditingTodo(todo.id, input.value, true));
@@ -229,7 +229,7 @@ function createTodoNode(todo, options = {}) {
       textNode.addEventListener("dblclick", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        startEditingTodo(todo.id);
+        startEditingTodo(todo.id, editContext);
       });
     }
     topRow.appendChild(textNode);
@@ -255,7 +255,7 @@ function createTodoNode(todo, options = {}) {
     if (shouldIgnoreEditTrigger(event.target)) return;
     event.preventDefault();
     event.stopPropagation();
-    startEditingTodo(todo.id);
+    startEditingTodo(todo.id, editContext);
   });
 
   // ── 删除按钮 ─────────────────────────────────────────────────────────────────
@@ -313,7 +313,8 @@ function renderQuadrants(quadrantTodos) {
       bucket.appendChild(createTodoNode(todo, {
         showQuadrantBadge: false,
         draggableInQuadrants: true,
-        allowInlineEdit: false,
+        allowInlineEdit: true,
+        editContext: "quadrants",
       }));
     });
   });
@@ -353,7 +354,7 @@ export function renderTodos() {
   const visible = getVisibleTodos(sortedTodos);
   const active = sortedTodos.filter((todo) => !todo.done);
   const done = sortedTodos.filter((todo) => todo.done);
-  const quadrantTodos = active;
+  const quadrantTodos = sortedTodos;
 
   if (dom.countBadge) {
     dom.countBadge.textContent = String(active.length);
@@ -368,7 +369,7 @@ export function renderTodos() {
   }
   if (dom.quadrantSummary) {
     dom.quadrantSummary.textContent = sortedTodos.length > 0
-      ? `全部 ${sortedTodos.length} · 进行中 ${active.length}`
+      ? `全部 ${sortedTodos.length} · 进行中 ${active.length} · 已完成 ${done.length}`
       : "全部 0";
   }
 

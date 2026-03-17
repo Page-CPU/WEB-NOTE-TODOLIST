@@ -72,7 +72,10 @@ if (dom.todoQuadrantPicker) {
 if (dom.addBtn) dom.addBtn.addEventListener("click", addTodo);
 if (dom.todoInput) {
   dom.todoInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") addTodo();
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      addTodo();
+    }
   });
 }
 

@@ -162,8 +162,9 @@ export function setSelectedQuadrant(nextQuadrant) {
 
 // ── 编辑 ──────────────────────────────────────────────────────────────────────
 
-export function startEditingTodo(todoId) {
+export function startEditingTodo(todoId, context = "sidebar") {
   state.editingTodoId = todoId;
+  state.editingContext = context;
   state.pendingRevealTodoId = todoId;
   scheduleRender();
 }
@@ -172,6 +173,7 @@ export function finishEditingTodo(todoId, value, commit) {
   const todo = state.todos.find((item) => item.id === todoId);
   if (!todo) {
     state.editingTodoId = "";
+    state.editingContext = "";
     state.pendingRevealTodoId = "";
     scheduleRender();
     return;
@@ -179,6 +181,7 @@ export function finishEditingTodo(todoId, value, commit) {
 
   if (!commit) {
     state.editingTodoId = "";
+    state.editingContext = "";
     state.pendingRevealTodoId = todoId;
     scheduleRender();
     return;
@@ -187,6 +190,7 @@ export function finishEditingTodo(todoId, value, commit) {
   const text = String(value ?? "").trim();
   if (!text || text === todo.text) {
     state.editingTodoId = "";
+    state.editingContext = "";
     state.pendingRevealTodoId = todoId;
     scheduleRender();
     return;
