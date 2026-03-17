@@ -347,10 +347,8 @@ body,
 .status-tools {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   min-width: 0;
-  overflow: hidden;
-  flex-shrink: 1;
 }
 
 .status-page-chip {
@@ -368,33 +366,6 @@ body,
   color: var(--color-accent-strong);
   font-size: var(--text-xs);
   padding: 0;
-}
-
-.status-save-indicator {
-  min-height: 22px;
-  padding: 0 6px;
-  font-size: var(--text-xs);
-  background: transparent;
-  box-shadow: none;
-}
-
-.status-save-indicator .save-dot {
-  width: 6px;
-  height: 6px;
-}
-
-.status-meta {
-  height: 22px;
-  padding: 0 7px;
-  border-radius: var(--radius-xs);
-  background: rgba(var(--cp-ink-rgb), var(--opacity-5));
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semibold);
-  display: inline-flex;
-  align-items: center;
-  white-space: nowrap;
 }
 
 /* Icon Button */
@@ -1061,6 +1032,7 @@ body,
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .meta-chip {
