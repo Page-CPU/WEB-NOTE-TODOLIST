@@ -34,15 +34,44 @@
           
           <!-- Status Bar: 替代原 brand-block，更克制，承载关键状态 -->
           <div class="status-bar">
-            <button type="button" class="status-brand" id="pages-toggle-btn" title="我的页面">A Note</button>
-            <div class="status-tools">
-              <div class="page-chip-wrap status-page-chip">
-                <code class="page-chip" id="page-code">/loading</code>
+            <div class="status-row-top">
+              <button type="button" class="status-brand" id="pages-toggle-btn" title="&#x6211;&#x7684;&#x9875;&#x9762;">A Note</button>
+              <div class="status-actions">
+                <button type="button" class="icon-btn" id="copy-link-btn" title="&#x5907;&#x4EFD;&#x672C;&#x9875;&#x94FE;&#x63A5;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg>
+                </button>
+                <button type="button" class="icon-btn" id="export-btn" title="&#x5BFC;&#x51FA;&#x4E3A; Markdown">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                </button>
+                <button type="button" class="icon-btn" id="theme-toggle-btn" title="&#x5207;&#x6362;&#x4E3B;&#x9898;" aria-label="&#x5207;&#x6362;&#x4E3B;&#x9898;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                  </svg>
+                </button>
               </div>
-              <div class="save-indicator status-save-indicator" id="save-indicator">
+            </div>
+            <div class="status-row-bottom">
+              <code class="page-chip" id="page-code">/loading</code>
+              <div class="save-indicator" id="save-indicator">
                 <div class="save-dot"></div>
                 <span id="save-label">&#x81EA;&#x52A8;&#x4FDD;&#x5B58;</span>
               </div>
+              <span class="meta-chip" id="last-modified">--</span>
             </div>
           </div>
 
@@ -109,33 +138,6 @@
                   <button class="preview-chip active" type="button" data-mode="edit">&#x7F16;&#x8F91;</button>
                   <button class="preview-chip" type="button" data-mode="preview">&#x9884;&#x89C8;</button>
                 </div>
-                <span class="meta-chip" id="last-modified">--</span>
-                <button type="button" class="icon-btn copy-link-btn" id="copy-link-btn" title="&#x5907;&#x4EFD;&#x672C;&#x9875;&#x94FE;&#x63A5;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                  </svg>
-                </button>
-                <button type="button" class="icon-btn export-btn" id="export-btn" title="&#x5BFC;&#x51FA;&#x4E3A; Markdown">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                </button>
-                <button type="button" class="icon-btn theme-toggle-btn" id="theme-toggle-btn" title="&#x5207;&#x6362;&#x4E3B;&#x9898;" aria-label="&#x5207;&#x6362;&#x4E3B;&#x9898;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                  </svg>
-                </button>
                 <span class="meta-chip" id="char-count">0 &#x5B57;</span>
                 <span class="meta-chip" id="line-count">0 &#x884C;</span>
               </div>

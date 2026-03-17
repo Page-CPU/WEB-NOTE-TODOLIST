@@ -313,13 +313,25 @@ body,
    ─────────────────────────────────────────────────────────────────────────── */
 .status-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 44px;
-  padding: 0 10px 0 12px;
+  flex-direction: column;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border-color-default);
   background: linear-gradient(180deg, var(--white-95), var(--white-88));
   flex-shrink: 0;
+  gap: 4px;
+}
+
+.status-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
 }
 
 .status-brand {
@@ -344,28 +356,10 @@ body,
   color: var(--color-accent);
 }
 
-.status-tools {
+.status-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.status-page-chip {
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  background: rgba(var(--cp-accent-rgb), var(--opacity-8));
-}
-
-.status-page-chip .page-chip-label {
-  display: none;
-}
-
-.status-page-chip .page-chip {
-  background: transparent;
-  color: var(--color-accent-strong);
-  font-size: var(--text-xs);
-  padding: 0;
+  gap: 2px;
 }
 
 /* Icon Button */
@@ -1032,7 +1026,6 @@ body,
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
 }
 
 .meta-chip {
@@ -1976,16 +1969,6 @@ body[data-editor-density="compact"] .editor-line-numbers {
     display: none;
   }
 
-  .status-tools {
-    flex: 1;
-    justify-content: flex-end;
-  }
-
-  .status-meta {
-    font-size: 10px;
-    padding: 0 var(--space-1);
-  }
-
   .filter-tab,
   .quadrant-chip,
   .mobile-tab {
@@ -2014,10 +1997,6 @@ body[data-editor-density="compact"] .editor-line-numbers {
   .copy-link-btn,
   .theme-toggle-btn {
     display: none;
-  }
-
-  .status-tools {
-    gap: var(--space-1);
   }
 }
 
@@ -2112,11 +2091,6 @@ body[data-editor-density="compact"] .editor-line-numbers {
 [data-theme="dark"] .status-bar {
   background: linear-gradient(180deg, rgba(37, 41, 49, 0.98), rgba(34, 38, 47, 0.96));
   border-color: rgba(255, 255, 255, var(--opacity-10));
-}
-
-[data-theme="dark"] .status-meta {
-  background: rgba(255, 255, 255, var(--opacity-10));
-  color: var(--text-muted);
 }
 
 [data-theme="dark"] .status-brand {
