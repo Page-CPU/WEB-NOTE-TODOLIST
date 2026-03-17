@@ -2397,3 +2397,137 @@ body[data-editor-density="compact"] .editor-line-numbers {
   background: var(--bg-elevated);
   color: var(--text-primary);
 }
+
+/* ── Pages Drawer ───────────────────────────────────────────────────────── */
+
+.pages-drawer {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-solid);
+  border-right: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+.pages-drawer.hidden { display: none; }
+
+.pages-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 8px;
+}
+
+.pages-drawer-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pages-drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.pages-drawer-close:hover {
+  background: var(--bg-elevated);
+}
+
+.pages-drawer-actions {
+  padding: 4px 18px 12px;
+}
+
+.pages-new-btn {
+  width: 100%;
+  height: 36px;
+  border: 1px dashed var(--border-default);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pages-new-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(var(--cp-accent-rgb), 0.04);
+}
+
+.pages-list {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 10px 16px;
+  list-style: none;
+}
+
+.pages-loading,
+.pages-empty {
+  padding: 24px 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.pages-item { border-radius: 10px; }
+
+.pages-item.is-current {
+  background: rgba(var(--cp-accent-rgb), 0.06);
+}
+
+.pages-item-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.12s ease;
+}
+
+.pages-item-link:hover {
+  background: var(--bg-elevated);
+}
+
+.pages-item-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pages-item-meta {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+
+button.status-brand {
+  all: unset;
+  font-family: "Fraunces", serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+button.status-brand:hover {
+  color: var(--accent);
+}

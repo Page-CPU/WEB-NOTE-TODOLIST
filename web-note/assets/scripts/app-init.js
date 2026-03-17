@@ -20,6 +20,7 @@ import { initMobileNavigation, setMobileTasksView } from "./features/navigation.
 import { dom, quadrantMenuRoot, showToast, removeToast, hideSkeleton } from "./ui/dom.js";
 import { renderTodos, closeQuadrantMenu } from "./ui/render.js";
 import { setupActions } from "./core/actions.js";
+import "./features/pages.js";
 
 // ── 视图切换 ──────────────────────────────────────────────────────────────────
 

@@ -16,11 +16,25 @@
   <div class="app-shell">
     <div class="workspace">
       <aside class="sidebar" id="sidebar">
+        <div class="pages-drawer hidden" id="pages-drawer">
+          <div class="pages-drawer-header">
+            <h3>我的页面</h3>
+            <button type="button" class="pages-drawer-close" id="pages-drawer-close">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="pages-drawer-actions">
+            <button type="button" class="pages-new-btn" id="pages-new-btn">+ 新建页面</button>
+          </div>
+          <ul class="pages-list" id="pages-list">
+            <li class="pages-loading">加载中…</li>
+          </ul>
+        </div>
         <div class="sidebar-panel">
           
           <!-- Status Bar: 替代原 brand-block，更克制，承载关键状态 -->
           <div class="status-bar">
-            <span class="status-brand">A Note</span>
+            <button type="button" class="status-brand" id="pages-toggle-btn" title="我的页面">A Note</button>
             <div class="status-tools">
               <div class="page-chip-wrap status-page-chip">
                 <code class="page-chip" id="page-code">/loading</code>

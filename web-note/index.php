@@ -106,6 +106,13 @@ function route(string $path, string $method): void
 
     enforceAccessControl($path);
 
+    if ($path === '/api/pages') {
+        if ($method !== 'GET') {
+            sendJson(405, ['detail' => 'Method not allowed']);
+        }
+        listPages();
+    }
+
     if (preg_match('#^/api/pages/([A-Za-z0-9]{1,32})$#', $path, $match)) {
         $pageId = $match[1];
         assertValidPageId($pageId);
@@ -563,6 +570,76 @@ function isEmptyPage(array $data): bool
     $note = trim((string) ($data['note'] ?? ''));
     $todos = is_array($data['todos'] ?? null) ? $data['todos'] : [];
     return $note === '' && count($todos) === 0;
+}
+
+function listPages(): void
+{
+    global $dataRoot;
+
+    if (!is_dir($dataRoot)) {
+        sendJson(200, ['pages' => []]);
+    }
+
+    $entries = @scandir($dataRoot);
+    if ($entries === false) {
+        sendJson(200, ['pages' => []]);
+    }
+
+    $pages = [];
+    foreach ($entries as $entry) {
+        if ($entry === '.' || $entry === '..' || $entry === '.locks') {
+            continue;
+        }
+
+        if (!preg_match('/^[A-Za-z0-9]{1,32}$/', $entry)) {
+            continue;
+        }
+
+        $currentPath = $dataRoot . DIRECTORY_SEPARATOR . $entry . DIRECTORY_SEPARATOR . 'current.json';
+        if (!is_file($currentPath)) {
+            continue;
+        }
+
+        $lastModified = null;
+        $timestamp = @filemtime($currentPath);
+        if ($timestamp !== false) {
+            $lastModified = gmdate(DateTimeInterface::ATOM, $timestamp);
+        }
+
+        $preview = '';
+        $todoTotal = 0;
+        $todoDone = 0;
+
+        try {
+            $data = readJsonFile($currentPath, ['note' => '', 'todos' => []]);
+            $note = (string) ($data['note'] ?? '');
+            $firstLine = strtok($note, "\n");
+            $preview = $firstLine !== false ? mb_substr($firstLine, 0, 80) : '';
+            $todos = is_array($data['todos'] ?? null) ? $data['todos'] : [];
+            $todoTotal = count($todos);
+            foreach ($todos as $todo) {
+                if (!empty($todo['done'])) {
+                    $todoDone++;
+                }
+            }
+        } catch (RuntimeException $e) {
+            continue;
+        }
+
+        $pages[] = [
+            'page_id' => $entry,
+            'last_modified' => $lastModified,
+            'preview' => $preview,
+            'todo_total' => $todoTotal,
+            'todo_done' => $todoDone,
+        ];
+    }
+
+    usort($pages, function ($a, $b) {
+        return strcmp($b['last_modified'] ?? '', $a['last_modified'] ?? '');
+    });
+
+    sendJson(200, ['pages' => $pages]);
 }
 
 function getPageData(string $pageId): void
