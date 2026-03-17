@@ -1,0 +1,8 @@
+.DS_Store
+*.backup
+*.backup.*
+*.old
+*.swp
+*.swo
+*~
+web-notebook-data/
