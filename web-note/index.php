@@ -583,11 +583,17 @@ function getPageData(string $pageId): void
         }
     }
 
+    $normalizedData = [
+        'note' => (string) ($data['note'] ?? ''),
+        'todos' => is_array($data['todos'] ?? null) ? $data['todos'] : [],
+    ];
+
     sendJson(200, [
         'page_id' => $pageId,
         'exists' => $exists,
-        'note' => (string) ($data['note'] ?? ''),
-        'todos' => is_array($data['todos'] ?? null) ? $data['todos'] : [],
+        'note' => $normalizedData['note'],
+        'todos' => $normalizedData['todos'],
+        'hash' => $exists ? hashData($normalizedData) : null,
         'last_modified' => $lastModified,
     ]);
 }
@@ -617,12 +623,15 @@ function savePage(string $pageId): void
     }
 
     $normalized = normalizePayload($payload);
-    $result = savePageData($pageId, $normalized);
+    $expectedHash = isset($payload['expected_hash']) && is_string($payload['expected_hash'])
+        ? trim($payload['expected_hash'])
+        : '';
+    $result = savePageData($pageId, $normalized, $expectedHash);
 
     sendJson(200, array_merge(['page_id' => $pageId], $result));
 }
 
-function savePageData(string $pageId, array $normalized): array
+function savePageData(string $pageId, array $normalized, string $expectedHash = ''): array
 {
     global $maxHistoryEntries, $maxRevisionFiles;
 
@@ -640,6 +649,19 @@ function savePageData(string $pageId, array $normalized): array
         }
         $newHash = hashData($normalized);
         $oldHash = hashData($existing);
+
+        if ($expectedHash !== '' && $expectedHash !== $oldHash) {
+            $existingNormalized = normalizePayload($existing);
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
+            $lockHandle = null;
+            sendJson(409, [
+                'detail' => 'Conflict: data has been modified by another client',
+                'server_hash' => $oldHash,
+                'server_note' => (string) ($existingNormalized['note'] ?? ''),
+                'server_todos' => $existingNormalized['todos'] ?? [],
+            ]);
+        }
 
         if (!is_dir($dirPath) && isEmptyPage($normalized)) {
             return ['saved' => false, 'history_recorded' => false, 'reason' => 'empty'];
@@ -735,10 +757,13 @@ function savePageData(string $pageId, array $normalized): array
             'history_recorded' => true,
             'reason' => 'updated',
             'revision_file' => $revisionFileName,
+            'hash' => $newHash,
             'last_modified' => $now->format(DateTimeInterface::ATOM),
         ];
     } finally {
-        releasePageLock($lockHandle);
+        if ($lockHandle !== null) {
+            releasePageLock($lockHandle);
+        }
     }
 }
 

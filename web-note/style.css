@@ -2335,3 +2335,65 @@ body[data-editor-density="compact"] .editor-line-numbers {
 .editor-preview a:hover {
   color: var(--accent-hover, var(--accent-strong));
 }
+
+/* ── Conflict Dialog ────────────────────────────────────────────────────── */
+
+.conflict-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.conflict-dialog {
+  width: min(90vw, 380px);
+  padding: 24px;
+  border-radius: 18px;
+  background: var(--surface-solid);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.conflict-dialog h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.conflict-dialog p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.conflict-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.conflict-btn {
+  flex: 1;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.conflict-btn:hover { opacity: 0.85; }
+
+.conflict-btn-reload {
+  background: var(--accent);
+  color: #fff;
+}
+
+.conflict-btn-overwrite {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}

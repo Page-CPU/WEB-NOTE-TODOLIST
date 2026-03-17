@@ -14,6 +14,7 @@ export const state = {
   saveQueued: false,
   queuedStatusText: "已保存",
   lastSavedHash: "",
+  serverHash: null,
   lastErrorType: null,
 
   // Todo 交互

@@ -51,6 +51,7 @@ export async function loadPageData() {
     hideSkeleton();
     scheduleRender();
     state.lastSavedHash = payloadHash(currentPayload());
+    state.serverHash = data.hash ?? null;
     setLastModified(data.last_modified);
     state.lastErrorType = null;
     setSaveStatus("saved", data.exists ? "已加载" : "新页面");
@@ -94,12 +95,26 @@ export async function persistNow(statusText = "已保存") {
     const response = await fetch(`${API_BASE}/save`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        expected_hash: state.serverHash,
+      }),
     });
+    if (response.status === 409) {
+      const conflict = await response.json();
+      state.serverHash = conflict.server_hash ?? null;
+      state.lastErrorType = "conflict";
+      setSaveStatus("error", "内容已被其他设备修改");
+      showConflictDialog(conflict, payload);
+      return;
+    }
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const result = await response.json();
     state.lastSavedHash = nextHash;
+    if (result.hash) {
+      state.serverHash = result.hash;
+    }
     if (result.reason === "empty") {
       setSaveStatus("saved", "未保存");
     } else if (result.reason === "unchanged") {
@@ -150,4 +165,41 @@ export function saveWithBeacon() {
   } else {
     fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true });
   }
+}
+
+function showConflictDialog(conflict, localPayload) {
+  document.querySelector(".conflict-dialog-backdrop")?.remove();
+
+  const el = document.createElement("div");
+  el.className = "conflict-dialog-backdrop";
+  el.innerHTML = `
+    <div class="conflict-dialog">
+      <h3>内容冲突</h3>
+      <p>此页面已被其他设备修改。请选择操作：</p>
+      <div class="conflict-actions">
+        <button type="button" class="conflict-btn conflict-btn-reload">加载远端内容</button>
+        <button type="button" class="conflict-btn conflict-btn-overwrite">覆盖为本地内容</button>
+      </div>
+    </div>
+  `;
+
+  el.querySelector(".conflict-btn-reload").addEventListener("click", () => {
+    el.remove();
+    loadPageData();
+  });
+
+  el.querySelector(".conflict-btn-overwrite").addEventListener("click", () => {
+    el.remove();
+    state.serverHash = null;
+    if (localPayload) {
+      dom.noteArea.value = localPayload.note ?? "";
+      state.todos = sanitizeTodos(localPayload.todos);
+      updateEditorMeta();
+      updateLineNumbers();
+      scheduleRender();
+    }
+    persistNow("已覆盖保存");
+  });
+
+  document.body.appendChild(el);
 }
