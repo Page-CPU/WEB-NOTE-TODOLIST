@@ -1,5 +1,5 @@
-// Markdown 工具栏：为编辑器 textarea 提供快捷格式插入能力。
-// 支持：标题、粗体、斜体、行内代码、代码块、无序列表、有序列表、链接、分隔线、引用、删除线、任务列表
+// Markdown 工具栏：浮动选中工具栏 + 块级插入菜单
+// 选中文本时弹出浮动工具栏；块级操作通过 header 中的 + 菜单触发。
 
 import { dom } from "../ui/dom.js";
 
@@ -65,14 +65,9 @@ function applyFormat(action) {
 
 // ── 格式化策略 ──────────────────────────────────────────────────────────────────
 
-/**
- * 包裹选中文本，例如 **选中文本**
- * 如果已包裹则取消包裹（toggle）
- */
 function wrapSelection(value, start, end, selected, action) {
   const { before, after, placeholder } = action;
 
-  // 检测是否已包裹 → toggle 取消
   const prevText = value.substring(start - before.length, start);
   const nextText = value.substring(end, end + after.length);
   if (prevText === before && nextText === after) {
@@ -100,21 +95,15 @@ function wrapSelection(value, start, end, selected, action) {
   };
 }
 
-/**
- * 行首前缀，例如 ## 、- 、> 等
- * 支持多行选中同时添加前缀
- */
 function applyLinePrefix(value, start, end, selected, action) {
   const { prefix } = action;
 
-  // 扩展选区到完整行
   const lineStart = value.lastIndexOf("\n", start - 1) + 1;
   const lineEnd = value.indexOf("\n", end);
   const actualEnd = lineEnd === -1 ? value.length : lineEnd;
   const linesText = value.substring(lineStart, actualEnd);
   const lines = linesText.split("\n");
 
-  // 检测是否所有行都已有前缀 → toggle 取消
   const allPrefixed = lines.every((line) => line.startsWith(prefix));
 
   const newLines = allPrefixed
@@ -131,14 +120,10 @@ function applyLinePrefix(value, start, end, selected, action) {
   };
 }
 
-/**
- * 插入代码块等块级元素
- */
 function insertBlock(value, start, end, selected, action) {
   const { before, after, placeholder } = action;
   const content = selected || placeholder;
 
-  // 确保代码块在新行开始
   const needNewlineBefore = start > 0 && value[start - 1] !== "\n";
   const needNewlineAfter = end < value.length && value[end] !== "\n";
 
@@ -155,14 +140,10 @@ function insertBlock(value, start, end, selected, action) {
   };
 }
 
-/**
- * 插入链接 [文本](url)
- */
 function insertLink(value, start, end, selected) {
   if (selected) {
-    // 选中内容作为链接文字
     const inserted = `[${selected}](url)`;
-    const urlStart = start + selected.length + 3; // 跳到 url
+    const urlStart = start + selected.length + 3;
     return {
       text: value.substring(0, start) + inserted + value.substring(end),
       selectionStart: urlStart,
@@ -174,13 +155,10 @@ function insertLink(value, start, end, selected) {
   return {
     text: value.substring(0, start) + inserted + value.substring(end),
     selectionStart: start + 1,
-    selectionEnd: start + 5, // 选中"链接文本"
+    selectionEnd: start + 5,
   };
 }
 
-/**
- * 直接插入文本（如分隔线）
- */
 function insertText(value, start, action) {
   const { text } = action;
   return {
@@ -190,41 +168,205 @@ function insertText(value, start, action) {
   };
 }
 
-// ── 工具栏初始化 ──────────────────────────────────────────────────────────────
+// ── 浮动工具栏：选中文本时弹出 ──────────────────────────────────────────────────
+
+let hideTimer = null;
+
+function getCaretCoordinates(textarea, position) {
+  // 创建镜像 div 来计算光标像素位置
+  const mirror = document.createElement("div");
+  const computed = getComputedStyle(textarea);
+
+  mirror.style.cssText = `
+    position: absolute; visibility: hidden; white-space: pre-wrap;
+    word-wrap: break-word; overflow: hidden; pointer-events: none;
+    width: ${computed.width};
+    font: ${computed.font};
+    letter-spacing: ${computed.letterSpacing};
+    line-height: ${computed.lineHeight};
+    padding: ${computed.padding};
+    border: ${computed.border};
+    box-sizing: ${computed.boxSizing};
+    tab-size: ${computed.tabSize};
+  `;
+
+  document.body.appendChild(mirror);
+
+  const textBefore = textarea.value.substring(0, position);
+  const textNode = document.createTextNode(textBefore);
+  mirror.appendChild(textNode);
+
+  const span = document.createElement("span");
+  span.textContent = textarea.value.substring(position) || ".";
+  mirror.appendChild(span);
+
+  const coords = {
+    top: span.offsetTop - textarea.scrollTop,
+    left: span.offsetLeft - textarea.scrollLeft,
+  };
+
+  document.body.removeChild(mirror);
+  return coords;
+}
+
+function positionFloatToolbar(toolbar, textarea) {
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+
+  // 用选区中点来定位
+  const midPos = Math.floor((start + end) / 2);
+  const coords = getCaretCoordinates(textarea, midPos);
+  const rect = textarea.getBoundingClientRect();
+
+  const toolbarWidth = toolbar.offsetWidth || 240;
+  const toolbarHeight = toolbar.offsetHeight || 34;
+
+  let left = rect.left + coords.left - toolbarWidth / 2;
+  let top = rect.top + coords.top - toolbarHeight - 8;
+
+  // 边界修正
+  const margin = 8;
+  if (left < margin) left = margin;
+  if (left + toolbarWidth > window.innerWidth - margin) {
+    left = window.innerWidth - toolbarWidth - margin;
+  }
+  if (top < margin) {
+    // 显示在选区下方
+    const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 20;
+    top = rect.top + coords.top + lineHeight + 4;
+  }
+
+  toolbar.style.left = `${left}px`;
+  toolbar.style.top = `${top}px`;
+}
+
+function showFloatToolbar() {
+  const toolbar = document.getElementById("md-float-toolbar");
+  const textarea = dom.noteArea;
+  if (!toolbar || !textarea) return;
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+
+  if (start === end || document.activeElement !== textarea) {
+    hideFloatToolbar();
+    return;
+  }
+
+  clearTimeout(hideTimer);
+
+  // 先显示（以获取尺寸），再定位
+  toolbar.classList.remove("hidden", "fade-out");
+  toolbar.style.position = "fixed";
+  positionFloatToolbar(toolbar, textarea);
+}
+
+function hideFloatToolbar() {
+  const toolbar = document.getElementById("md-float-toolbar");
+  if (!toolbar || toolbar.classList.contains("hidden")) return;
+
+  clearTimeout(hideTimer);
+  toolbar.classList.add("fade-out");
+  hideTimer = setTimeout(() => {
+    toolbar.classList.add("hidden");
+    toolbar.classList.remove("fade-out");
+  }, 120);
+}
 
 export function initMarkdownToolbar() {
-  const toolbar = document.getElementById("md-toolbar");
-  if (!toolbar) return;
+  const floatToolbar = document.getElementById("md-float-toolbar");
+  const textarea = dom.noteArea;
 
-  toolbar.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-md-action]");
-    if (!btn) return;
-
-    e.preventDefault();
-    const actionKey = btn.dataset.mdAction;
-    const action = FORMAT_ACTIONS[actionKey];
-    if (action) applyFormat(action);
-  });
-
-  // 标题下拉菜单
-  const headingBtn = toolbar.querySelector(".md-heading-btn");
-  const headingMenu = toolbar.querySelector(".md-heading-menu");
-  if (headingBtn && headingMenu) {
-    headingBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      headingMenu.classList.toggle("hidden");
+  // ── 浮动工具栏事件 ──
+  if (floatToolbar && textarea) {
+    // 点击按钮执行格式化
+    floatToolbar.addEventListener("mousedown", (e) => {
+      // 阻止默认行为以保持 textarea 的选区
+      e.preventDefault();
     });
 
-    headingMenu.addEventListener("click", (e) => {
-      const item = e.target.closest("[data-md-action]");
-      if (item) headingMenu.classList.add("hidden");
-    });
+    floatToolbar.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-md-action]");
+      if (!btn) return;
 
-    document.addEventListener("click", (e) => {
-      if (!headingBtn.contains(e.target) && !headingMenu.contains(e.target)) {
-        headingMenu.classList.add("hidden");
+      e.preventDefault();
+      const actionKey = btn.dataset.mdAction;
+      const action = FORMAT_ACTIONS[actionKey];
+      if (action) {
+        applyFormat(action);
+        hideFloatToolbar();
       }
     });
+
+    // 监听选区变化
+    let selectionCheckTimer = null;
+    textarea.addEventListener("select", () => {
+      clearTimeout(selectionCheckTimer);
+      selectionCheckTimer = setTimeout(showFloatToolbar, 150);
+    });
+
+    textarea.addEventListener("mouseup", () => {
+      clearTimeout(selectionCheckTimer);
+      selectionCheckTimer = setTimeout(showFloatToolbar, 100);
+    });
+
+    textarea.addEventListener("keyup", (e) => {
+      if (e.shiftKey && (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "Home" || e.key === "End")) {
+        clearTimeout(selectionCheckTimer);
+        selectionCheckTimer = setTimeout(showFloatToolbar, 150);
+      }
+    });
+
+    // 失焦时隐藏（延迟以允许点击工具栏按钮）
+    textarea.addEventListener("blur", () => {
+      setTimeout(() => {
+        if (!floatToolbar.contains(document.activeElement)) {
+          hideFloatToolbar();
+        }
+      }, 200);
+    });
+
+    // 点击其他区域隐藏
+    document.addEventListener("mousedown", (e) => {
+      if (!floatToolbar.contains(e.target) && e.target !== textarea) {
+        hideFloatToolbar();
+      }
+    });
+
+    // 滚动时隐藏
+    textarea.addEventListener("scroll", hideFloatToolbar);
+  }
+
+  // ── Md 按钮切换横向工具栏 ──
+  const toggleBtn = document.getElementById("md-toggle-btn");
+  const mdToolbar = document.getElementById("md-toolbar");
+
+  if (toggleBtn && mdToolbar) {
+    toggleBtn.addEventListener("click", () => {
+      const isHidden = mdToolbar.classList.toggle("hidden");
+      toggleBtn.classList.toggle("active", !isHidden);
+      // 记住偏好
+      try { localStorage.setItem("md-toolbar-visible", isHidden ? "0" : "1"); } catch {}
+    });
+
+    // 工具栏按钮点击
+    mdToolbar.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-md-action]");
+      if (!btn) return;
+
+      e.preventDefault();
+      const actionKey = btn.dataset.mdAction;
+      const action = FORMAT_ACTIONS[actionKey];
+      if (action) applyFormat(action);
+    });
+
+    // 恢复上次偏好
+    try {
+      if (localStorage.getItem("md-toolbar-visible") === "1") {
+        mdToolbar.classList.remove("hidden");
+        toggleBtn.classList.add("active");
+      }
+    } catch {}
   }
 }
 

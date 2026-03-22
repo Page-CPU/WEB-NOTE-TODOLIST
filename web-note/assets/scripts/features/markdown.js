@@ -67,7 +67,7 @@ export function markdownToHtml(src) {
           const text = m[2];
           items.push(
             `<li class="task-item${checked ? " is-done" : ""}">` +
-            `<input type="checkbox" disabled${checked ? " checked" : ""}> ${inline(text)}</li>`
+            `<input type="checkbox"${checked ? " checked" : ""}> <span>${inline(text)}</span></li>`
           );
         }
         i++;

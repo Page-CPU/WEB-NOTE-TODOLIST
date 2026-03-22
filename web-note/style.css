@@ -1465,31 +1465,42 @@ body[data-editor-density="compact"] .editor-line-numbers {
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   10.5 Markdown Toolbar
+   10.5 Markdown Floating Toolbar & Block Insert
    ─────────────────────────────────────────────────────────────────────────── */
 
-.md-toolbar {
+/* ── 浮动工具栏（选中文本时弹出） ── */
+
+.md-float-toolbar {
+  position: absolute;
+  z-index: 200;
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 4px 12px;
-  border-bottom: 1px solid var(--border-color-default);
-  background: rgba(var(--cp-ink-rgb), var(--opacity-3));
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  min-height: 36px;
+  padding: 4px 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color-default);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.06);
+  pointer-events: auto;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 120ms ease, transform 120ms ease;
 }
 
-.md-toolbar-group {
-  display: flex;
-  align-items: center;
-  gap: 1px;
+.md-float-toolbar.hidden {
+  display: none;
+}
+
+.md-float-toolbar.fade-out {
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
 }
 
 .md-toolbar-sep {
   width: 1px;
   height: 16px;
-  margin: 0 4px;
+  margin: 0 3px;
   background: var(--border-color-default);
   flex-shrink: 0;
 }
@@ -1498,8 +1509,8 @@ body[data-editor-density="compact"] .editor-line-numbers {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   padding: 0;
   border: none;
   border-radius: var(--radius-sm);
@@ -1517,7 +1528,7 @@ body[data-editor-density="compact"] .editor-line-numbers {
 
 .md-btn:active {
   background: rgba(var(--cp-ink-rgb), var(--opacity-12));
-  transform: scale(0.94);
+  transform: scale(0.92);
 }
 
 .md-btn:focus-visible {
@@ -1525,74 +1536,91 @@ body[data-editor-density="compact"] .editor-line-numbers {
   outline-offset: -1px;
 }
 
-.md-btn svg {
-  flex-shrink: 0;
+.md-btn svg { flex-shrink: 0; }
+
+.md-btn-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  color: inherit;
 }
 
-/* 标题下拉 */
-.md-heading-wrapper {
-  position: relative;
+/* ── Md 切换按钮 ── */
+
+.md-block-insert {
+  margin-left: 8px;
 }
 
-.md-heading-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 100;
-  min-width: 140px;
-  padding: 4px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color-default);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-.md-heading-menu.hidden {
-  display: none;
-}
-
-.md-heading-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 10px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  cursor: pointer;
-  text-align: left;
-  transition: background var(--duration-fast) var(--ease-in-out);
-}
-
-.md-heading-option:hover {
-  background: rgba(var(--cp-ink-rgb), var(--opacity-8));
-}
-
-.md-h-tag {
+.md-toggle-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 20px;
-  border-radius: 4px;
-  background: rgba(var(--cp-ink-rgb), var(--opacity-8));
-  color: var(--text-secondary);
+  padding: 2px 8px;
+  border: 1px solid var(--border-color-default);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-in-out);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+.md-toggle-btn:hover {
+  background: rgba(var(--cp-ink-rgb), var(--opacity-6));
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.md-toggle-btn.active {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+
+.md-toggle-btn:active {
+  transform: scale(0.94);
+}
+
+/* ── 可收起的横向 Markdown 工具栏 ── */
+
+.md-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 12px;
+  border-bottom: 1px solid var(--border-color-default);
+  background: rgba(var(--cp-ink-rgb), var(--opacity-3));
   flex-shrink: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.md-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.md-toolbar.hidden {
+  display: none;
+}
+
+.md-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
 }
 
 /* ── Dark theme ── */
 
-[data-theme="dark"] .md-toolbar {
-  background: rgba(255, 255, 255, var(--opacity-3));
+[data-theme="dark"] .md-float-toolbar {
+  background: var(--cp-gray-100);
   border-color: rgba(255, 255, 255, var(--opacity-10));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="dark"] .md-toolbar-sep {
@@ -1608,41 +1636,18 @@ body[data-editor-density="compact"] .editor-line-numbers {
   background: rgba(255, 255, 255, var(--opacity-16));
 }
 
-[data-theme="dark"] .md-heading-menu {
-  background: var(--cp-gray-100);
+[data-theme="dark"] .md-toggle-btn {
   border-color: rgba(255, 255, 255, var(--opacity-10));
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .md-heading-option:hover {
+[data-theme="dark"] .md-toggle-btn:hover {
   background: rgba(255, 255, 255, var(--opacity-10));
+  border-color: rgba(255, 255, 255, var(--opacity-16));
 }
 
-[data-theme="dark"] .md-h-tag {
-  background: rgba(255, 255, 255, var(--opacity-10));
-  color: var(--text-muted);
-}
-
-/* ── 移动端适配 ── */
-
-@media (max-width: 900px) {
-  .md-toolbar {
-    padding: 3px 8px;
-    gap: 1px;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .md-toolbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .md-btn {
-    width: 32px;
-    height: 32px;
-  }
+[data-theme="dark"] .md-toolbar {
+  background: rgba(255, 255, 255, var(--opacity-3));
+  border-color: rgba(255, 255, 255, var(--opacity-10));
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -2720,14 +2725,16 @@ body[data-editor-density="compact"] .editor-line-numbers {
 
 .editor-preview .task-item {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 4px;
 }
 
 .editor-preview .task-item input[type="checkbox"] {
-  margin-top: 4px;
+  margin: 0;
+  flex-shrink: 0;
   accent-color: var(--color-accent);
+  cursor: pointer;
 }
 
 .editor-preview .task-item.is-done {
