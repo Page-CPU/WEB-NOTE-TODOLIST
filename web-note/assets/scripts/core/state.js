@@ -19,6 +19,7 @@ export const state = {
 
   // Todo 交互
   selectedQuadrant: "eliminate",
+  selectedDueDate: "",
   highlightedTodoId: "",
   highlightTodoTimer: null,
   activeQuadrantMenu: null,

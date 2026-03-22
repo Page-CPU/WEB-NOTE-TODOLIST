@@ -60,6 +60,13 @@ export function createTodoId() {
   return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
+export function normalizeDueDate(value) {
+  if (!value) return null;
+  const str = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str) && !Number.isNaN(new Date(str + "T00:00:00").getTime())) return str;
+  return null;
+}
+
 export function sanitizeTodos(rawTodos) {
   if (!Array.isArray(rawTodos)) return [];
   return rawTodos.map((item) => {
@@ -70,6 +77,7 @@ export function sanitizeTodos(rawTodos) {
       done: Boolean(item?.done),
       urgency: normalizeUrgency(item?.urgency),
       importance: normalizeImportance(item?.importance),
+      due_date: normalizeDueDate(item?.due_date),
       created_at: normalizeTodoTimestamp(item?.created_at, timestamp),
       updated_at: timestamp,
     };
@@ -106,6 +114,27 @@ export function formatTodoMeta(todo) {
     minute: "2-digit",
     hour12: false,
   }).format(new Date(timestamp));
+}
+
+export function getDueDateStatus(dueDate) {
+  if (!dueDate) return null;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const due = new Date(dueDate + "T00:00:00");
+  const diffDays = Math.round((due - today) / 86400000);
+  if (diffDays < 0) return { label: `已过期`, status: "overdue", diff: diffDays };
+  if (diffDays === 0) return { label: "今天", status: "today", diff: 0 };
+  if (diffDays === 1) return { label: "明天", status: "tomorrow", diff: 1 };
+  const m = due.getMonth() + 1;
+  const d = due.getDate();
+  if (diffDays <= 7) return { label: `${m}/${d}`, status: "soon", diff: diffDays };
+  return { label: `${m}/${d}`, status: "later", diff: diffDays };
+}
+
+export function formatDueDate(dueDate) {
+  if (!dueDate) return "";
+  const due = new Date(dueDate + "T00:00:00");
+  return `${due.getMonth() + 1}/${due.getDate()}`;
 }
 
 export function applyQuadrantToTodo(todo, quadrant) {
@@ -220,6 +249,7 @@ export function addTodo() {
     done: false,
     urgency: nextQuadrant.urgency,
     importance: nextQuadrant.importance,
+    due_date: normalizeDueDate(state.selectedDueDate),
     created_at: now,
     updated_at: now,
   });
@@ -228,5 +258,20 @@ export function addTodo() {
   state.pendingRevealTodoId = id;
   dom.todoInput.value = "";
   dom.todoInput.focus();
+  state.selectedDueDate = "";
+  syncDueDateButton();
   commitTodosChange("已保存");
+}
+
+export function syncDueDateButton() {
+  const btn = dom.dueDateBtn;
+  if (!btn) return;
+  if (state.selectedDueDate) {
+    const d = new Date(state.selectedDueDate + "T00:00:00");
+    btn.textContent = `${d.getMonth() + 1}/${d.getDate()}`;
+    btn.classList.add("has-date");
+  } else {
+    btn.textContent = "截止日期";
+    btn.classList.remove("has-date");
+  }
 }

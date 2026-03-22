@@ -12,6 +12,7 @@ import {
   getQuadrantKey, getVisibleTodos, sortTodos,
   formatTodoMeta, applyQuadrantToTodo, flashTodo,
   startEditingTodo, finishEditingTodo,
+  getDueDateStatus, normalizeDueDate,
 } from "../features/todos.js";
 import { commitTodosChange } from "../core/actions.js";
 
@@ -75,21 +76,95 @@ function createQuadrantBadge(todo) {
 
 // ── 拖拽放置 ──────────────────────────────────────────────────────────────────
 
+let _dropIndicator = null;
+
+function clearDropIndicator() {
+  if (_dropIndicator && _dropIndicator.parentNode) {
+    _dropIndicator.parentNode.removeChild(_dropIndicator);
+  }
+  _dropIndicator = null;
+}
+
+function getDropTarget(bucket, y) {
+  const items = [...bucket.querySelectorAll(".todo-item:not(.is-dragging)")];
+  for (const item of items) {
+    const rect = item.getBoundingClientRect();
+    if (y < rect.top + rect.height / 2) {
+      return { before: item };
+    }
+  }
+  return { before: null };
+}
+
+function showDropIndicator(bucket, beforeEl) {
+  if (!_dropIndicator) {
+    _dropIndicator = document.createElement("li");
+    _dropIndicator.className = "drop-indicator";
+  }
+  // 已经在正确位置则不动，避免反复 DOM 操作引起抖动
+  const currentNext = _dropIndicator.nextElementSibling;
+  if (_dropIndicator.parentNode === bucket) {
+    if (beforeEl === null && !currentNext) return;
+    if (beforeEl && currentNext === beforeEl) return;
+  }
+  if (beforeEl) {
+    bucket.insertBefore(_dropIndicator, beforeEl);
+  } else {
+    bucket.appendChild(_dropIndicator);
+  }
+}
+
+function reorderTodoInState(draggedId, targetQuadrantKey, beforeTodoId) {
+  const draggedIdx = state.todos.findIndex((t) => t.id === draggedId);
+  if (draggedIdx === -1) return;
+  const todo = state.todos[draggedIdx];
+
+  const currentKey = getQuadrantKey(todo);
+  if (currentKey !== targetQuadrantKey) {
+    applyQuadrantToTodo(todo, targetQuadrantKey);
+  }
+
+  const [removed] = state.todos.splice(draggedIdx, 1);
+
+  if (beforeTodoId) {
+    const insertIdx = state.todos.findIndex((t) => t.id === beforeTodoId);
+    if (insertIdx !== -1) {
+      state.todos.splice(insertIdx, 0, removed);
+    } else {
+      state.todos.push(removed);
+    }
+  } else {
+    // 放到该象限的末尾：找到该象限最后一个 todo 的位置之后插入
+    let lastIdx = -1;
+    state.todos.forEach((t, i) => {
+      if (getQuadrantKey(t) === targetQuadrantKey) lastIdx = i;
+    });
+    state.todos.splice(lastIdx + 1, 0, removed);
+  }
+}
+
 function bindQuadrantDropTargets() {
   Object.entries(dom.quadrantBucketWraps).forEach(([key, wrap]) => {
     if (!wrap || wrap.dataset.boundDrop === "true") return;
     wrap.dataset.boundDrop = "true";
+    const bucket = dom.quadrantBuckets[key];
 
     wrap.addEventListener("dragover", (event) => {
       if (!state.draggedTodoId) return;
       event.preventDefault();
       wrap.classList.add("is-drop-target");
       wrap.closest(".quadrant-card")?.classList.add("is-drop-target");
+      if (bucket) {
+        const { before } = getDropTarget(bucket, event.clientY);
+        showDropIndicator(bucket, before);
+      }
     });
 
-    wrap.addEventListener("dragleave", () => {
+    wrap.addEventListener("dragleave", (event) => {
+      if (wrap.contains(event.relatedTarget)) return;
       wrap.classList.remove("is-drop-target");
       wrap.closest(".quadrant-card")?.classList.remove("is-drop-target");
+      clearDropIndicator();
     });
 
     wrap.addEventListener("drop", (event) => {
@@ -97,12 +172,18 @@ function bindQuadrantDropTargets() {
       event.preventDefault();
       wrap.classList.remove("is-drop-target");
       wrap.closest(".quadrant-card")?.classList.remove("is-drop-target");
-      const todo = state.todos.find((item) => item.id === state.draggedTodoId);
+
+      const indicator = bucket?.querySelector(".drop-indicator");
+      const beforeEl = indicator?.nextElementSibling;
+      const beforeTodoId = beforeEl?.dataset?.todoId || null;
+      clearDropIndicator();
+
+      const draggedId = state.draggedTodoId;
       state.draggedTodoId = "";
-      if (!todo || getQuadrantKey(todo) === key) return;
-      applyQuadrantToTodo(todo, key);
-      flashTodo(todo.id, 1200);
-      state.pendingRevealTodoId = todo.id;
+
+      reorderTodoInState(draggedId, key, beforeTodoId);
+      flashTodo(draggedId, 1200);
+      state.pendingRevealTodoId = draggedId;
       commitTodosChange("已保存");
     });
   });
@@ -112,7 +193,7 @@ function bindQuadrantDropTargets() {
 
 function shouldIgnoreEditTrigger(target) {
   return Boolean(
-    target?.closest(".check-wrap, .todo-quadrant-badge, .del-btn, .todo-inline-input")
+    target?.closest(".check-wrap, .todo-quadrant-badge, .del-btn, .todo-inline-input, .todo-due-chip, .todo-due-add")
   );
 }
 
@@ -142,6 +223,7 @@ function createTodoNode(todo, options = {}) {
     li.addEventListener("dragend", () => {
       state.draggedTodoId = "";
       li.classList.remove("is-dragging");
+      clearDropIndicator();
       Object.values(dom.quadrantBucketWraps).forEach((wrap) => {
         wrap?.classList.remove("is-drop-target");
         wrap?.closest(".quadrant-card")?.classList.remove("is-drop-target");
@@ -233,6 +315,60 @@ function createTodoNode(todo, options = {}) {
       });
     }
     topRow.appendChild(textNode);
+  }
+
+  // ── 截止日期标签 ──────────────────────────────────────────────────────────────
+  const dueStatus = !todo.done ? getDueDateStatus(todo.due_date) : null;
+  if (dueStatus && state.editingTodoId !== todo.id) {
+    const dueChip = document.createElement("span");
+    dueChip.className = `todo-due-chip due-${dueStatus.status}`;
+    dueChip.textContent = dueStatus.label;
+    dueChip.title = `截止 ${todo.due_date}，点击修改`;
+    dueChip.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const input = document.createElement("input");
+      input.type = "date";
+      input.className = "todo-due-edit";
+      input.value = todo.due_date || "";
+      input.style.position = "absolute";
+      input.style.opacity = "0";
+      input.style.pointerEvents = "none";
+      dueChip.parentNode.appendChild(input);
+      input.addEventListener("change", () => {
+        todo.due_date = normalizeDueDate(input.value);
+        todo.updated_at = new Date().toISOString();
+        input.remove();
+        commitTodosChange("已保存");
+      });
+      input.addEventListener("blur", () => input.remove());
+      input.showPicker();
+    });
+    topRow.appendChild(dueChip);
+  } else if (!todo.done && !dueStatus && state.editingTodoId !== todo.id) {
+    // 无截止日期时，hover 显示一个添加按钮
+    const addDueBtn = document.createElement("span");
+    addDueBtn.className = "todo-due-add";
+    addDueBtn.title = "设置截止日期";
+    addDueBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+    addDueBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const input = document.createElement("input");
+      input.type = "date";
+      input.className = "todo-due-edit";
+      input.style.position = "absolute";
+      input.style.opacity = "0";
+      input.style.pointerEvents = "none";
+      addDueBtn.parentNode.appendChild(input);
+      input.addEventListener("change", () => {
+        todo.due_date = normalizeDueDate(input.value);
+        todo.updated_at = new Date().toISOString();
+        input.remove();
+        commitTodosChange("已保存");
+      });
+      input.addEventListener("blur", () => input.remove());
+      input.showPicker();
+    });
+    topRow.appendChild(addDueBtn);
   }
 
   if (showQuadrantBadge) {
@@ -354,7 +490,7 @@ export function renderTodos() {
   const visible = getVisibleTodos(sortedTodos);
   const active = sortedTodos.filter((todo) => !todo.done);
   const done = sortedTodos.filter((todo) => todo.done);
-  const quadrantTodos = sortedTodos;
+  const quadrantTodos = state.todos;
 
   if (dom.countBadge) {
     dom.countBadge.textContent = String(active.length);

@@ -15,7 +15,8 @@ import { setTheme, applyThemeFromPreference } from "./features/theme.js";
 import {
   setEditorDensity, setMainView, setEditorMode, updateLineNumbers, updateEditorMeta,
 } from "./features/editor.js";
-import { addTodo, setFilter, setSelectedQuadrant } from "./features/todos.js";
+import { addTodo, setFilter, setSelectedQuadrant, syncDueDateButton } from "./features/todos.js";
+import { initMarkdownToolbar, initMarkdownShortcuts } from "./features/markdown-toolbar.js";
 import { initMobileNavigation, setMobileTasksView } from "./features/navigation.js";
 import { dom, quadrantMenuRoot, showToast, removeToast, hideSkeleton } from "./ui/dom.js";
 import { renderTodos, closeQuadrantMenu } from "./ui/render.js";
@@ -64,6 +65,24 @@ if (previewToggle) {
 if (dom.todoQuadrantPicker) {
   dom.todoQuadrantPicker.querySelectorAll(".quadrant-chip").forEach((chip) => {
     chip.addEventListener("click", () => setSelectedQuadrant(chip.dataset.quadrant));
+  });
+}
+
+// ── 截止日期选择 ──────────────────────────────────────────────────────────────
+
+if (dom.dueDateBtn && dom.dueDateInput) {
+  dom.dueDateBtn.addEventListener("click", () => {
+    if (state.selectedDueDate) {
+      state.selectedDueDate = "";
+      syncDueDateButton();
+    } else {
+      dom.dueDateInput.value = "";
+      dom.dueDateInput.showPicker();
+    }
+  });
+  dom.dueDateInput.addEventListener("change", () => {
+    state.selectedDueDate = dom.dueDateInput.value || "";
+    syncDueDateButton();
   });
 }
 
@@ -272,6 +291,8 @@ setSelectedQuadrant(state.selectedQuadrant);
 setLastModified(null);
 applyThemeFromPreference();
 updateLineNumbers();
+initMarkdownToolbar();
+initMarkdownShortcuts();
 initMobileNavigation();
 
 if (dom.pageCode) dom.pageCode.textContent = PAGE_ID ? `/${PAGE_ID}` : "/";

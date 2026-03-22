@@ -32,6 +32,32 @@ function currentPayload() {
   };
 }
 
+async function extractApiError(response) {
+  const fallback = `HTTP ${response.status}`;
+
+  try {
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      if (data && typeof data.detail === "string" && data.detail.trim() !== "") {
+        return `${fallback}: ${data.detail.trim()}`;
+      }
+    } else {
+      const text = (await response.text()).trim();
+      if (text) {
+        return `${fallback}: ${text.slice(0, 160)}`;
+      }
+    }
+  } catch {}
+
+  return fallback;
+}
+
+function flashApiError(message) {
+  const toastEl = showToast(message);
+  setTimeout(() => removeToast(toastEl), 4200);
+}
+
 // ── 加载页面数据 ──────────────────────────────────────────────────────────────
 
 export async function loadPageData() {
@@ -39,7 +65,7 @@ export async function loadPageData() {
   setSaveStatus("saving", "加载中");
   try {
     const response = await fetch(API_BASE, { cache: "no-store" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) throw new Error(await extractApiError(response));
 
     const data = await response.json();
     dom.noteArea.value = typeof data.note === "string" ? data.note : "";
@@ -70,6 +96,7 @@ export async function loadPageData() {
     console.error("加载失败", error);
     state.lastErrorType = "load";
     setSaveStatus("error", "加载失败，点击重试");
+    flashApiError(error?.message || "加载失败");
     scheduleRender();
   } finally {
     hideSkeleton();
@@ -108,7 +135,7 @@ export async function persistNow(statusText = "已保存") {
       showConflictDialog(conflict, payload);
       return;
     }
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) throw new Error(await extractApiError(response));
 
     const result = await response.json();
     state.lastSavedHash = nextHash;
@@ -128,6 +155,7 @@ export async function persistNow(statusText = "已保存") {
     console.error("保存失败", error);
     state.lastErrorType = "save";
     setSaveStatus("error", "保存失败，点击重试");
+    flashApiError(error?.message || "保存失败");
   } finally {
     state.saveInFlight = false;
     if (state.saveQueued) {
