@@ -2,6 +2,19 @@
 // 支持：h1-h3、粗体、斜体、删除线、行内代码、代码块、无序列表、有序列表、
 //       任务列表、引用块、链接、分隔线、段落
 
+// ── 预编译正则 ─────────────────────────────────────────────────────────────────
+
+const RE_CODE_FENCE = /^```/;
+const RE_HR_DASH = /^-{3,}$/;
+const RE_HR_STAR = /^\*{3,}$/;
+const RE_HEADING = /^(#{1,3})\s+(.+)$/;
+const RE_BLOCKQUOTE = /^&gt;\s?/;
+const RE_BLOCKQUOTE_STRIP = /^&gt;\s?/;
+const RE_TASK_ITEM = /^[-*]\s+\[([ xX])\]\s+/;
+const RE_TASK_ITEM_FULL = /^[-*]\s+\[([ xX])\]\s+(.+)$/;
+const RE_UL_ITEM = /^[-*]\s+/;
+const RE_OL_ITEM = /^\d+\.\s+/;
+
 export function markdownToHtml(src) {
   const escaped = escapeHtml(src);
   const lines = escaped.split("\n");
@@ -10,12 +23,13 @@ export function markdownToHtml(src) {
 
   while (i < lines.length) {
     const line = lines[i];
+    const trimmed = line.trim();
 
     // ── 代码块 ──
-    if (line.trimStart().startsWith("```")) {
+    if (RE_CODE_FENCE.test(line.trimStart())) {
       const codeLines = [];
       i++;
-      while (i < lines.length && !lines[i].trimStart().startsWith("```")) {
+      while (i < lines.length && !RE_CODE_FENCE.test(lines[i].trimStart())) {
         codeLines.push(lines[i]);
         i++;
       }
@@ -25,20 +39,20 @@ export function markdownToHtml(src) {
     }
 
     // ── 空行 ──
-    if (line.trim() === "") {
+    if (trimmed === "") {
       i++;
       continue;
     }
 
     // ── 分隔线 ──
-    if (/^-{3,}$/.test(line.trim()) || /^\*{3,}$/.test(line.trim())) {
+    if (RE_HR_DASH.test(trimmed) || RE_HR_STAR.test(trimmed)) {
       out.push("<hr>");
       i++;
       continue;
     }
 
     // ── 标题 ──
-    const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
+    const headingMatch = line.match(RE_HEADING);
     if (headingMatch) {
       const level = headingMatch[1].length;
       out.push(`<h${level}>${inline(headingMatch[2])}</h${level}>`);
@@ -47,10 +61,10 @@ export function markdownToHtml(src) {
     }
 
     // ── 引用块 ──
-    if (/^&gt;\s?/.test(line.trim())) {
+    if (RE_BLOCKQUOTE.test(trimmed)) {
       const quoteLines = [];
-      while (i < lines.length && /^&gt;\s?/.test(lines[i].trim())) {
-        quoteLines.push(inline(lines[i].trim().replace(/^&gt;\s?/, "")));
+      while (i < lines.length && RE_BLOCKQUOTE.test(lines[i].trim())) {
+        quoteLines.push(inline(lines[i].trim().replace(RE_BLOCKQUOTE_STRIP, "")));
         i++;
       }
       out.push(`<blockquote>${quoteLines.map((l) => `<p>${l}</p>`).join("")}</blockquote>`);
@@ -58,10 +72,10 @@ export function markdownToHtml(src) {
     }
 
     // ── 任务列表 ──
-    if (/^[\-\*]\s+\[([ xX])\]\s+/.test(line.trim())) {
+    if (RE_TASK_ITEM.test(trimmed)) {
       const items = [];
-      while (i < lines.length && /^[\-\*]\s+\[([ xX])\]\s+/.test(lines[i].trim())) {
-        const m = lines[i].trim().match(/^[\-\*]\s+\[([ xX])\]\s+(.+)$/);
+      while (i < lines.length && RE_TASK_ITEM.test(lines[i].trim())) {
+        const m = lines[i].trim().match(RE_TASK_ITEM_FULL);
         if (m) {
           const checked = m[1] !== " ";
           const text = m[2];
@@ -77,10 +91,10 @@ export function markdownToHtml(src) {
     }
 
     // ── 无序列表 ──
-    if (/^[\-\*]\s+/.test(line.trim())) {
+    if (RE_UL_ITEM.test(trimmed)) {
       const items = [];
-      while (i < lines.length && /^[\-\*]\s+/.test(lines[i].trim())) {
-        items.push(`<li>${inline(lines[i].trim().replace(/^[\-\*]\s+/, ""))}</li>`);
+      while (i < lines.length && RE_UL_ITEM.test(lines[i].trim())) {
+        items.push(`<li>${inline(lines[i].trim().replace(RE_UL_ITEM, ""))}</li>`);
         i++;
       }
       out.push(`<ul>${items.join("")}</ul>`);
@@ -88,10 +102,10 @@ export function markdownToHtml(src) {
     }
 
     // ── 有序列表 ──
-    if (/^\d+\.\s+/.test(line.trim())) {
+    if (RE_OL_ITEM.test(trimmed)) {
       const items = [];
-      while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
-        items.push(`<li>${inline(lines[i].trim().replace(/^\d+\.\s+/, ""))}</li>`);
+      while (i < lines.length && RE_OL_ITEM.test(lines[i].trim())) {
+        items.push(`<li>${inline(lines[i].trim().replace(RE_OL_ITEM, ""))}</li>`);
         i++;
       }
       out.push(`<ol>${items.join("")}</ol>`);

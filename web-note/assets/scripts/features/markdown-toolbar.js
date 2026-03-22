@@ -224,16 +224,22 @@ function positionFloatToolbar(toolbar, textarea) {
   let left = rect.left + coords.left - toolbarWidth / 2;
   let top = rect.top + coords.top - toolbarHeight - 8;
 
-  // 边界修正
+  // 边界修正（考虑移动端软键盘和 visualViewport）
   const margin = 8;
+  const vw = (window.visualViewport?.width ?? window.innerWidth);
+  const vh = (window.visualViewport?.height ?? window.innerHeight);
   if (left < margin) left = margin;
-  if (left + toolbarWidth > window.innerWidth - margin) {
-    left = window.innerWidth - toolbarWidth - margin;
+  if (left + toolbarWidth > vw - margin) {
+    left = vw - toolbarWidth - margin;
   }
-  if (top < margin) {
+  if (top < margin || top > vh - toolbarHeight - margin) {
     // 显示在选区下方
     const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 20;
     top = rect.top + coords.top + lineHeight + 4;
+    // 仍然超出则贴底
+    if (top + toolbarHeight > vh - margin) {
+      top = vh - toolbarHeight - margin;
+    }
   }
 
   toolbar.style.left = `${left}px`;

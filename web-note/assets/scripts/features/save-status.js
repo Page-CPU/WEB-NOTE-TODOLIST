@@ -28,6 +28,8 @@ export function markLastModifiedNow() {
 }
 
 export function setSaveStatus(status, text) {
+  if (!dom.saveIndicator || !dom.saveLabel) return;
+
   clearTimeout(state.saveStatusTimer);
   dom.saveIndicator.classList.remove("saved", "saving", "error", "is-retry");
   if (status === "saved" || status === "saving" || status === "error") {

@@ -229,6 +229,76 @@ function createTodoNode(todo, options = {}) {
         wrap?.closest(".quadrant-card")?.classList.remove("is-drop-target");
       });
     });
+
+    // ── 触摸拖拽支持 ──
+    let touchTimer = null;
+    li.addEventListener("touchstart", (e) => {
+      touchTimer = setTimeout(() => {
+        state.draggedTodoId = todo.id;
+        closeQuadrantMenu();
+        li.classList.add("is-dragging");
+      }, 300);
+    }, { passive: true });
+
+    li.addEventListener("touchmove", (e) => {
+      clearTimeout(touchTimer);
+      if (!state.draggedTodoId || state.draggedTodoId !== todo.id) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      const wrap = target?.closest(".quadrant-bucket-wrap");
+      // 清除所有高亮
+      Object.values(dom.quadrantBucketWraps).forEach((w) => {
+        w?.classList.remove("is-drop-target");
+        w?.closest(".quadrant-card")?.classList.remove("is-drop-target");
+      });
+      if (wrap) {
+        wrap.classList.add("is-drop-target");
+        wrap.closest(".quadrant-card")?.classList.add("is-drop-target");
+        const bucket = wrap.querySelector(".quadrant-bucket");
+        if (bucket) {
+          const { before } = getDropTarget(bucket, touch.clientY);
+          showDropIndicator(bucket, before);
+        }
+      } else {
+        clearDropIndicator();
+      }
+    }, { passive: false });
+
+    li.addEventListener("touchend", (e) => {
+      clearTimeout(touchTimer);
+      if (!state.draggedTodoId || state.draggedTodoId !== todo.id) return;
+      const touch = e.changedTouches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      const wrap = target?.closest(".quadrant-bucket-wrap");
+
+      li.classList.remove("is-dragging");
+      Object.values(dom.quadrantBucketWraps).forEach((w) => {
+        w?.classList.remove("is-drop-target");
+        w?.closest(".quadrant-card")?.classList.remove("is-drop-target");
+      });
+
+      if (wrap) {
+        const key = Object.entries(dom.quadrantBucketWraps).find(([, w]) => w === wrap)?.[0];
+        const bucket = wrap.querySelector(".quadrant-bucket");
+        const indicator = bucket?.querySelector(".drop-indicator");
+        const beforeEl = indicator?.nextElementSibling;
+        const beforeTodoId = beforeEl?.dataset?.todoId || null;
+        clearDropIndicator();
+
+        if (key) {
+          const draggedId = state.draggedTodoId;
+          state.draggedTodoId = "";
+          reorderTodoInState(draggedId, key, beforeTodoId);
+          flashTodo(draggedId, 1200);
+          state.pendingRevealTodoId = draggedId;
+          commitTodosChange("已保存");
+          return;
+        }
+      }
+      clearDropIndicator();
+      state.draggedTodoId = "";
+    });
   }
 
   // ── 勾选框 ──────────────────────────────────────────────────────────────────
