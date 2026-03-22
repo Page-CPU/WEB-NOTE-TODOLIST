@@ -19,6 +19,7 @@ function payloadHash(payload) {
       done: Boolean(todo.done),
       urgency: normalizeUrgency(todo.urgency),
       importance: normalizeImportance(todo.importance),
+      due_date: todo.due_date ?? null,
       created_at: normalizeTodoTimestamp(todo.created_at),
       updated_at: normalizeTodoTimestamp(todo.updated_at),
     })),
@@ -186,8 +187,15 @@ export function saveWithBeacon() {
   clearTimeout(state.saveDebounceTimer);
   state.saveDebounceTimer = null;
 
-  const body = JSON.stringify(payload);
+  const body = JSON.stringify({
+    ...payload,
+    expected_hash: state.serverHash,
+  });
   const url = `${API_BASE}/save`;
+
+  // 乐观更新本地哈希，避免用户切回页面后正常保存误报 409 冲突
+  state.lastSavedHash = nextHash;
+
   if (navigator.sendBeacon) {
     navigator.sendBeacon(url, new Blob([body], { type: "application/json" }));
   } else {

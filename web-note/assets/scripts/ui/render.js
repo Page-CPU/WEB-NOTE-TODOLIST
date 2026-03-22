@@ -246,7 +246,7 @@ function createTodoNode(todo, options = {}) {
       e.preventDefault();
       const touch = e.touches[0];
       const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      const wrap = target?.closest(".quadrant-bucket-wrap");
+      const wrap = target?.closest(".quadrant-list-wrap");
       // 清除所有高亮
       Object.values(dom.quadrantBucketWraps).forEach((w) => {
         w?.classList.remove("is-drop-target");
@@ -255,7 +255,7 @@ function createTodoNode(todo, options = {}) {
       if (wrap) {
         wrap.classList.add("is-drop-target");
         wrap.closest(".quadrant-card")?.classList.add("is-drop-target");
-        const bucket = wrap.querySelector(".quadrant-bucket");
+        const bucket = wrap.querySelector(".quadrant-list");
         if (bucket) {
           const { before } = getDropTarget(bucket, touch.clientY);
           showDropIndicator(bucket, before);
@@ -270,7 +270,7 @@ function createTodoNode(todo, options = {}) {
       if (!state.draggedTodoId || state.draggedTodoId !== todo.id) return;
       const touch = e.changedTouches[0];
       const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      const wrap = target?.closest(".quadrant-bucket-wrap");
+      const wrap = target?.closest(".quadrant-list-wrap");
 
       li.classList.remove("is-dragging");
       Object.values(dom.quadrantBucketWraps).forEach((w) => {
@@ -280,7 +280,7 @@ function createTodoNode(todo, options = {}) {
 
       if (wrap) {
         const key = Object.entries(dom.quadrantBucketWraps).find(([, w]) => w === wrap)?.[0];
-        const bucket = wrap.querySelector(".quadrant-bucket");
+        const bucket = wrap.querySelector(".quadrant-list");
         const indicator = bucket?.querySelector(".drop-indicator");
         const beforeEl = indicator?.nextElementSibling;
         const beforeTodoId = beforeEl?.dataset?.todoId || null;
@@ -411,7 +411,11 @@ function createTodoNode(todo, options = {}) {
         commitTodosChange("已保存");
       });
       input.addEventListener("blur", () => input.remove());
-      input.showPicker();
+      if (typeof input.showPicker === "function") {
+        try { input.showPicker(); } catch {}
+      } else {
+        input.click();
+      }
     });
     topRow.appendChild(dueChip);
   } else if (!todo.done && !dueStatus && state.editingTodoId !== todo.id) {
@@ -436,7 +440,11 @@ function createTodoNode(todo, options = {}) {
         commitTodosChange("已保存");
       });
       input.addEventListener("blur", () => input.remove());
-      input.showPicker();
+      if (typeof input.showPicker === "function") {
+        try { input.showPicker(); } catch {}
+      } else {
+        input.click();
+      }
     });
     topRow.appendChild(addDueBtn);
   }
