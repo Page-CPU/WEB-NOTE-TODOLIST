@@ -5,6 +5,7 @@ function getPageIdFromPath() {
 
 export const PAGE_ID = getPageIdFromPath();
 export const API_BASE = `/api/pages/${encodeURIComponent(PAGE_ID)}`;
+export const FEEDBACK_API = "/api/feedback";
 
 export const EDITOR_DENSITY_KEY = "web-note-editor-density";
 export const MAIN_VIEW_KEY = "web-note-main-view";

@@ -58,6 +58,11 @@
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
               </button>
+              <button type="button" class="icon-btn feedback-btn" id="feedback-btn" title="提交反馈" aria-label="提交反馈" aria-haspopup="dialog">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>
               <button type="button" class="theme-chip" id="theme-toggle-btn" title="切换主题" aria-label="切换主题">暗色</button>
             </div>
           </div>
@@ -297,6 +302,82 @@
         <span>&#x4EFB;&#x52A1;</span>
       </button>
     </nav>
+  </div>
+
+  <div class="feedback-modal-backdrop hidden" id="feedback-modal" role="presentation">
+    <div class="feedback-modal-card" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+      <div class="feedback-modal-header">
+        <div>
+          <p class="feedback-modal-kicker">反馈</p>
+          <h3 class="feedback-modal-title" id="feedback-title">告诉我们哪里不顺手</h3>
+        </div>
+        <button type="button" class="feedback-close-btn" id="feedback-close-btn" title="关闭反馈窗口" aria-label="关闭反馈窗口">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <p class="feedback-modal-desc">
+        反馈会先安全记录到服务端，再发送到维护邮箱。你可以只发问题描述，也可以附带当前页面上下文。
+      </p>
+
+      <form class="feedback-form" id="feedback-form">
+        <label class="feedback-field">
+          <span class="feedback-label">反馈类型</span>
+          <select class="feedback-select" id="feedback-type" name="type">
+            <option value="bug">问题反馈</option>
+            <option value="feature">功能建议</option>
+            <option value="other">其他</option>
+          </select>
+        </label>
+
+        <label class="feedback-field">
+          <span class="feedback-label">反馈内容</span>
+          <textarea
+            class="feedback-textarea"
+            id="feedback-message"
+            name="message"
+            rows="6"
+            maxlength="2000"
+            placeholder="比如：我刚录入的待办消失了，出现前我做了什么、当时用的浏览器和操作路径。"
+            required
+          ></textarea>
+        </label>
+
+        <label class="feedback-field">
+          <span class="feedback-label">联系方式</span>
+          <input
+            class="feedback-input"
+            id="feedback-contact"
+            name="contact"
+            type="text"
+            maxlength="200"
+            placeholder="邮箱、微信或手机号（选填）"
+            autocomplete="email"
+          />
+        </label>
+
+        <div class="feedback-checks">
+          <label class="feedback-check">
+            <input type="checkbox" id="feedback-include-debug" name="include_debug" checked />
+            <span>附带诊断信息（页面、浏览器、保存状态、任务统计）</span>
+          </label>
+          <label class="feedback-check">
+            <input type="checkbox" id="feedback-include-content" name="include_content" />
+            <span>附带当前页面的笔记与待办内容</span>
+          </label>
+        </div>
+
+        <p class="feedback-page-meta" id="feedback-page-meta">当前页面 /</p>
+
+        <div class="feedback-actions">
+          <button type="button" class="feedback-secondary-btn" id="feedback-cancel-btn">取消</button>
+          <button type="submit" class="feedback-primary-btn" id="feedback-submit-btn">发送反馈</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script type="module" src="assets/scripts/app-init.js"></script>

@@ -15,6 +15,7 @@ import { setTheme, applyThemeFromPreference } from "./features/theme.js";
 import {
   setEditorDensity, setMainView, setEditorMode, updateLineNumbers, updateEditorMeta,
 } from "./features/editor.js";
+import { initFeedback } from "./features/feedback.js";
 import { addTodo, setFilter, setSelectedQuadrant, syncDueDateButton } from "./features/todos.js";
 import { initMarkdownToolbar, initMarkdownShortcuts } from "./features/markdown-toolbar.js";
 import { initMobileNavigation, setMobileTasksView } from "./features/navigation.js";
@@ -300,6 +301,7 @@ updateLineNumbers();
 initMarkdownToolbar();
 initMarkdownShortcuts();
 initMobileNavigation();
+initFeedback();
 
 if (dom.pageCode) dom.pageCode.textContent = PAGE_ID ? `/${PAGE_ID}` : "/";
 if (PAGE_ID) {

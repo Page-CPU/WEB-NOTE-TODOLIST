@@ -13,19 +13,35 @@ $defaultDataRoot = dirname($baseDir) . DIRECTORY_SEPARATOR . 'web-notebook-data'
 $dataRoot = $configuredDataRoot !== false && $configuredDataRoot !== ''
     ? rtrim($configuredDataRoot, "/\\")
     : $defaultDataRoot;
+$configuredFeedbackRoot = envValue('WEB_NOTE_FEEDBACK_ROOT');
+$defaultFeedbackRoot = dirname($baseDir) . DIRECTORY_SEPARATOR . 'web-notebook-data' . DIRECTORY_SEPARATOR . 'feedback';
+$feedbackRoot = $configuredFeedbackRoot !== false && $configuredFeedbackRoot !== ''
+    ? rtrim($configuredFeedbackRoot, "/\\")
+    : $defaultFeedbackRoot;
 $accessPassword = envValue('WEB_NOTE_ACCESS_PASSWORD');
 $accessPasswordHash = envValue('WEB_NOTE_ACCESS_PASSWORD_HASH');
 $authCookieName = 'web_note_auth';
 $authCookieLifetime = 60 * 60 * 24 * 30;
+$smtpHost = envValue('WEB_NOTE_SMTP_HOST');
+$smtpPort = envIntValue('WEB_NOTE_SMTP_PORT', 465);
+$smtpSecurity = envValue('WEB_NOTE_SMTP_SECURITY');
+$smtpUsername = envValue('WEB_NOTE_SMTP_USERNAME');
+$smtpPassword = envValue('WEB_NOTE_SMTP_PASSWORD');
+$feedbackTo = envValue('WEB_NOTE_FEEDBACK_TO');
+$feedbackFrom = envValue('WEB_NOTE_FEEDBACK_FROM');
 
 $reservedPageIds = ['api'];
 $maxRequestBytes = 1024 * 1024;
 $maxHistoryEntries = 1000;
 $maxRevisionFiles = 500;
+$feedbackHistoryMaxEntries = envIntValue('WEB_NOTE_FEEDBACK_HISTORY_MAX_ENTRIES', 1000);
+$feedbackRateLimitWindowSeconds = envIntValue('WEB_NOTE_FEEDBACK_RATE_LIMIT_WINDOW_SECONDS', 600);
+$feedbackRateLimitMax = envIntValue('WEB_NOTE_FEEDBACK_RATE_LIMIT_MAX', 3);
 
 require_once __DIR__ . '/lib/http.php';
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/data.php';
+require_once __DIR__ . '/lib/feedback.php';
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -48,6 +64,17 @@ function envValue(string $name): string|false
     }
 
     return false;
+}
+
+function envIntValue(string $name, int $fallback): int
+{
+    $value = envValue($name);
+    if ($value === false) {
+        return $fallback;
+    }
+
+    $intValue = (int) $value;
+    return $intValue > 0 ? $intValue : $fallback;
 }
 
 function route(string $path, string $method): void
@@ -113,6 +140,13 @@ function route(string $path, string $method): void
             sendJson(405, ['detail' => 'Method not allowed']);
         }
         listPages();
+    }
+
+    if ($path === '/api/feedback') {
+        if ($method !== 'POST') {
+            sendJson(405, ['detail' => 'Method not allowed']);
+        }
+        handleFeedback();
     }
 
     if (preg_match('#^/api/pages/([A-Za-z0-9]{1,32})$#', $path, $match)) {

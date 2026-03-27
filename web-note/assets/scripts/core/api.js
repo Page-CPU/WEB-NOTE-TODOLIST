@@ -60,6 +60,7 @@ function flashApiError(message) {
 }
 
 const PENDING_SAVE_KEY_PREFIX = "web-note-pending-save:";
+let pendingSaveSnapshotWarningShown = false;
 
 function pendingSaveStorageKey() {
   return PAGE_ID ? `${PENDING_SAVE_KEY_PREFIX}${PAGE_ID}` : "";
@@ -80,6 +81,7 @@ function readPendingSaveSnapshot() {
 
     return {
       hash: parsed.hash,
+      noteStored: parsed.note_stored !== false,
       payload: {
         note: typeof parsed.payload.note === "string" ? parsed.payload.note : "",
         todos: sanitizeTodos(parsed.payload.todos),
@@ -90,6 +92,13 @@ function readPendingSaveSnapshot() {
   }
 }
 
+function flashPendingSaveSnapshotWarning(message) {
+  if (pendingSaveSnapshotWarningShown) return;
+  pendingSaveSnapshotWarningShown = true;
+  const toastEl = showToast(message);
+  setTimeout(() => removeToast(toastEl), 4200);
+}
+
 function cachePendingSaveSnapshot(payload, hash) {
   const key = pendingSaveStorageKey();
   if (!key) return;
@@ -97,11 +106,29 @@ function cachePendingSaveSnapshot(payload, hash) {
   try {
     window.localStorage.setItem(key, JSON.stringify({
       hash,
+      note_stored: true,
       payload,
       updated_at: new Date().toISOString(),
     }));
+    pendingSaveSnapshotWarningShown = false;
   } catch (error) {
     console.warn("pending save snapshot not persisted", error);
+
+    try {
+      window.localStorage.setItem(key, JSON.stringify({
+        hash,
+        note_stored: false,
+        payload: {
+          note: "",
+          todos: payload.todos,
+        },
+        updated_at: new Date().toISOString(),
+      }));
+      flashPendingSaveSnapshotWarning("当前内容较大，已启用精简兜底保存");
+    } catch (fallbackError) {
+      console.warn("pending save fallback snapshot not persisted", fallbackError);
+      flashPendingSaveSnapshotWarning("当前内容较大，关闭页面前请等待保存完成");
+    }
   }
 }
 
@@ -172,7 +199,9 @@ export async function loadPageData() {
     const pendingSnapshot = readPendingSaveSnapshot();
 
     if (pendingSnapshot && pendingSnapshot.hash !== serverDataPayloadHash(data)) {
-      dom.noteArea.value = pendingSnapshot.payload.note;
+      dom.noteArea.value = pendingSnapshot.noteStored
+        ? pendingSnapshot.payload.note
+        : (typeof data.note === "string" ? data.note : "");
       state.todos = sanitizeTodos(pendingSnapshot.payload.todos);
       updateEditorMeta();
       updateLineNumbers();
@@ -185,8 +214,12 @@ export async function loadPageData() {
       state.pendingBeaconHash = pendingSnapshot.hash;
       setLastModified(data.last_modified);
       state.lastErrorType = null;
-      setSaveStatus("saving", "正在恢复上次内容");
-      const toastEl = showToast("检测到上次未确认保存的内容，已自动恢复");
+      setSaveStatus("saving", pendingSnapshot.noteStored ? "正在恢复上次内容" : "正在恢复待办内容");
+      const toastEl = showToast(
+        pendingSnapshot.noteStored
+          ? "检测到上次未确认保存的内容，已自动恢复"
+          : "检测到上次未确认保存的待办内容，笔记因本地空间不足未能完整缓存"
+      );
       setTimeout(() => removeToast(toastEl), 3200);
       persistNow("已恢复保存");
       return;
