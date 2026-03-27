@@ -9,7 +9,7 @@ import {
   loadFilterPreference,
   getThemePreference,
 } from "./core/storage.js";
-import { loadPageData, persistNow, queueSave, saveWithBeacon } from "./core/api.js";
+import { loadPageData, persistNow, queueSave, saveWithBeacon, resumePendingSave } from "./core/api.js";
 import { setSaveStatus, setLastModified, markLastModifiedNow } from "./features/save-status.js";
 import { setTheme, applyThemeFromPreference } from "./features/theme.js";
 import {
@@ -77,7 +77,11 @@ if (dom.dueDateBtn && dom.dueDateInput) {
       syncDueDateButton();
     } else {
       dom.dueDateInput.value = "";
-      dom.dueDateInput.showPicker();
+      if (typeof dom.dueDateInput.showPicker === "function") {
+        try { dom.dueDateInput.showPicker(); } catch {}
+      } else {
+        dom.dueDateInput.click();
+      }
     }
   });
   dom.dueDateInput.addEventListener("change", () => {
@@ -277,7 +281,9 @@ if (dom.themeToggleBtn) {
 window.addEventListener("beforeunload", saveWithBeacon);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") saveWithBeacon();
+  if (document.visibilityState === "visible") resumePendingSave();
 });
+window.addEventListener("focus", resumePendingSave);
 
 // ── 初始化 ────────────────────────────────────────────────────────────────────
 

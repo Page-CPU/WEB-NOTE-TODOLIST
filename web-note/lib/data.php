@@ -67,6 +67,7 @@ function normalizePayload(array $payload): array
             'done' => (bool) ($item['done'] ?? false),
             'urgency' => normalizeUrgency($item['urgency'] ?? 'normal'),
             'importance' => normalizeImportance($item['importance'] ?? 'important'),
+            'due_date' => normalizeDueDate($item['due_date'] ?? null),
             'created_at' => $createdAt,
             'updated_at' => $updatedAt,
         ];
@@ -94,6 +95,21 @@ function normalizeImportance($value): string
     return in_array($importance, $allowed, true) ? $importance : 'important';
 }
 
+function normalizeDueDate($value): ?string
+{
+    if (!is_string($value) || trim($value) === '') {
+        return null;
+    }
+    $trimmed = trim($value);
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $trimmed)) {
+        $d = DateTimeImmutable::createFromFormat('Y-m-d', $trimmed);
+        if ($d && $d->format('Y-m-d') === $trimmed) {
+            return $trimmed;
+        }
+    }
+    return null;
+}
+
 function normalizeTodoTimestamp($value, ?string $fallback = null): ?string
 {
     if (!is_string($value) || trim($value) === '') {
@@ -119,6 +135,7 @@ function canonicalJson(array $data): string
             'done' => (bool) ($todo['done'] ?? false),
             'urgency' => normalizeUrgency($todo['urgency'] ?? 'normal'),
             'importance' => normalizeImportance($todo['importance'] ?? 'important'),
+            'due_date' => normalizeDueDate($todo['due_date'] ?? null),
             'created_at' => normalizeTodoTimestamp($todo['created_at'] ?? null, ''),
             'updated_at' => normalizeTodoTimestamp($todo['updated_at'] ?? null, ''),
         ];

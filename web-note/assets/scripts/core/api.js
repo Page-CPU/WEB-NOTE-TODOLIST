@@ -1,4 +1,4 @@
-import { API_BASE, SAVE_DEBOUNCE_MS, FIRST_VISIT_TOAST_KEY, TODOS_PAGE_SIZE } from "./config.js";
+import { API_BASE, PAGE_ID, SAVE_DEBOUNCE_MS, FIRST_VISIT_TOAST_KEY, TODOS_PAGE_SIZE } from "./config.js";
 import { state } from "./state.js";
 import {
   sanitizeTodos, normalizeTodoTimestamp, normalizeUrgency, normalizeImportance, syncFilterButtons,
@@ -59,16 +59,139 @@ function flashApiError(message) {
   setTimeout(() => removeToast(toastEl), 4200);
 }
 
+const PENDING_SAVE_KEY_PREFIX = "web-note-pending-save:";
+
+function pendingSaveStorageKey() {
+  return PAGE_ID ? `${PENDING_SAVE_KEY_PREFIX}${PAGE_ID}` : "";
+}
+
+function readPendingSaveSnapshot() {
+  const key = pendingSaveStorageKey();
+  if (!key) return null;
+
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    if (typeof parsed.hash !== "string" || !parsed.hash) return null;
+    if (!parsed.payload || typeof parsed.payload !== "object") return null;
+
+    return {
+      hash: parsed.hash,
+      payload: {
+        note: typeof parsed.payload.note === "string" ? parsed.payload.note : "",
+        todos: sanitizeTodos(parsed.payload.todos),
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+function cachePendingSaveSnapshot(payload, hash) {
+  const key = pendingSaveStorageKey();
+  if (!key) return;
+
+  try {
+    window.localStorage.setItem(key, JSON.stringify({
+      hash,
+      payload,
+      updated_at: new Date().toISOString(),
+    }));
+  } catch (error) {
+    console.warn("pending save snapshot not persisted", error);
+  }
+}
+
+function clearPendingSaveSnapshot() {
+  const key = pendingSaveStorageKey();
+  if (!key) return;
+
+  try {
+    window.localStorage.removeItem(key);
+  } catch (error) {
+    console.warn("pending save snapshot not cleared", error);
+  }
+}
+
+async function fetchServerSnapshot() {
+  const response = await fetch(API_BASE, { cache: "no-store" });
+  if (!response.ok) throw new Error(await extractApiError(response));
+  return response.json();
+}
+
+function serverDataPayloadHash(data) {
+  return payloadHash({
+    note: typeof data.note === "string" ? data.note : "",
+    todos: sanitizeTodos(data.todos),
+  });
+}
+
+async function reconcilePendingBeaconSave() {
+  if (!state.pendingBeaconHash) return "noop";
+  if (state.beaconRevalidatePromise) return state.beaconRevalidatePromise;
+
+  const pendingHash = state.pendingBeaconHash;
+
+  state.beaconRevalidatePromise = (async () => {
+    try {
+      const data = await fetchServerSnapshot();
+      state.serverHash = data.hash ?? null;
+
+      if (serverDataPayloadHash(data) === pendingHash) {
+        state.lastSavedHash = pendingHash;
+        state.pendingBeaconHash = "";
+        clearPendingSaveSnapshot();
+        state.lastErrorType = null;
+        setLastModified(data.last_modified);
+        return "confirmed";
+      }
+
+      state.pendingBeaconHash = "";
+      return "retry";
+    } catch (error) {
+      console.warn("beacon save validation failed", error);
+      return "unknown";
+    } finally {
+      state.beaconRevalidatePromise = null;
+    }
+  })();
+
+  return state.beaconRevalidatePromise;
+}
+
 // ── 加载页面数据 ──────────────────────────────────────────────────────────────
 
 export async function loadPageData() {
   showSkeleton();
   setSaveStatus("saving", "加载中");
   try {
-    const response = await fetch(API_BASE, { cache: "no-store" });
-    if (!response.ok) throw new Error(await extractApiError(response));
+    const data = await fetchServerSnapshot();
+    const pendingSnapshot = readPendingSaveSnapshot();
 
-    const data = await response.json();
+    if (pendingSnapshot && pendingSnapshot.hash !== serverDataPayloadHash(data)) {
+      dom.noteArea.value = pendingSnapshot.payload.note;
+      state.todos = sanitizeTodos(pendingSnapshot.payload.todos);
+      updateEditorMeta();
+      updateLineNumbers();
+      syncFilterButtons();
+      state.todoListShowCount = TODOS_PAGE_SIZE;
+      hideSkeleton();
+      scheduleRender();
+      state.lastSavedHash = serverDataPayloadHash(data);
+      state.serverHash = data.hash ?? null;
+      state.pendingBeaconHash = pendingSnapshot.hash;
+      setLastModified(data.last_modified);
+      state.lastErrorType = null;
+      setSaveStatus("saving", "正在恢复上次内容");
+      const toastEl = showToast("检测到上次未确认保存的内容，已自动恢复");
+      setTimeout(() => removeToast(toastEl), 3200);
+      persistNow("已恢复保存");
+      return;
+    }
+
     dom.noteArea.value = typeof data.note === "string" ? data.note : "";
     state.todos = sanitizeTodos(data.todos);
     updateEditorMeta();
@@ -79,6 +202,8 @@ export async function loadPageData() {
     scheduleRender();
     state.lastSavedHash = payloadHash(currentPayload());
     state.serverHash = data.hash ?? null;
+    state.pendingBeaconHash = "";
+    clearPendingSaveSnapshot();
     setLastModified(data.last_modified);
     state.lastErrorType = null;
     setSaveStatus("saved", data.exists ? "已加载" : "新页面");
@@ -107,6 +232,8 @@ export async function loadPageData() {
 // ── 立即保存 ──────────────────────────────────────────────────────────────────
 
 export async function persistNow(statusText = "已保存") {
+  await reconcilePendingBeaconSave();
+
   const payload = currentPayload();
   const nextHash = payloadHash(payload);
   if (nextHash === state.lastSavedHash) return;
@@ -143,6 +270,8 @@ export async function persistNow(statusText = "已保存") {
     if (result.hash) {
       state.serverHash = result.hash;
     }
+    state.pendingBeaconHash = "";
+    clearPendingSaveSnapshot();
     if (result.reason === "empty") {
       setSaveStatus("saved", "未保存");
     } else if (result.reason === "unchanged") {
@@ -192,15 +321,54 @@ export function saveWithBeacon() {
     expected_hash: state.serverHash,
   });
   const url = `${API_BASE}/save`;
+  const blob = new Blob([body], { type: "application/json" });
 
-  // 乐观更新本地哈希，避免用户切回页面后正常保存误报 409 冲突
-  state.lastSavedHash = nextHash;
+  // sendBeacon 只能知道“是否入队”，不能知道服务端是否真的保存成功。
+  // 这里仅记录一个待确认的 hash，等页面回到前台后再校验/补存。
+  state.pendingBeaconHash = nextHash;
+  cachePendingSaveSnapshot(payload, nextHash);
 
+  let queued = false;
   if (navigator.sendBeacon) {
-    navigator.sendBeacon(url, new Blob([body], { type: "application/json" }));
-  } else {
-    fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true });
+    try {
+      queued = navigator.sendBeacon(url, blob);
+    } catch {}
   }
+
+  if (queued) return;
+
+  fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+  }).then(async (response) => {
+    if (!response.ok) return;
+    const result = await response.json();
+    if (result.hash) {
+      state.lastSavedHash = nextHash;
+      state.serverHash = result.hash;
+    }
+    state.pendingBeaconHash = "";
+    clearPendingSaveSnapshot();
+    state.lastErrorType = null;
+  }).catch(() => {});
+}
+
+export async function resumePendingSave() {
+  if (!state.pendingBeaconHash) return;
+
+  const outcome = await reconcilePendingBeaconSave();
+  if (outcome === "confirmed") {
+    setSaveStatus("saved", "已同步");
+    return;
+  }
+
+  const payload = currentPayload();
+  const nextHash = payloadHash(payload);
+  if (nextHash === state.lastSavedHash) return;
+
+  persistNow("已恢复保存");
 }
 
 function showConflictDialog(conflict, localPayload) {

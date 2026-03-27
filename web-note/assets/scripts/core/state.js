@@ -15,6 +15,8 @@ export const state = {
   queuedStatusText: "已保存",
   lastSavedHash: "",
   serverHash: null,
+  pendingBeaconHash: "",
+  beaconRevalidatePromise: null,
   lastErrorType: null,
 
   // Todo 交互
