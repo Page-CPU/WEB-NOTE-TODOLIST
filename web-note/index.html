@@ -80,15 +80,41 @@
               </button>
             </div>
             <div class="composer-options">
-              <div class="quadrant-picker" id="todo-quadrant" role="group" aria-label="&#x4F18;&#x5148;&#x7EA7;">
-                <button class="quadrant-chip" type="button" data-quadrant="eliminate" title="&#x4E0D;&#x6025;&#x4E0D;&#x91CD;&#x8981;">&#x4E0D;&#x6025;&#x4E0D;&#x91CD;&#x8981;</button>
-                <button class="quadrant-chip" type="button" data-quadrant="plan" title="&#x91CD;&#x8981;&#x4E0D;&#x6025;">&#x91CD;&#x8981;&#x4E0D;&#x6025;</button>
-                <button class="quadrant-chip" type="button" data-quadrant="delegate" title="&#x6025;&#x4F46;&#x4E0D;&#x91CD;&#x8981;">&#x6025;&#x4F46;&#x4E0D;&#x91CD;&#x8981;</button>
-                <button class="quadrant-chip active" type="button" data-quadrant="do" title="&#x91CD;&#x8981;&#x4E14;&#x7D27;&#x6025;">&#x91CD;&#x8981;&#x4E14;&#x7D27;&#x6025;</button>
+              <div class="quadrant-picker" id="todo-quadrant" role="group" aria-label="优先级">
+                <button class="quadrant-chip" type="button" data-quadrant="eliminate" title="不急不重要">不急不重要</button>
+                <button class="quadrant-chip" type="button" data-quadrant="plan" title="重要不急">重要不急</button>
+                <button class="quadrant-chip" type="button" data-quadrant="delegate" title="急但不重要">急但不重要</button>
+                <button class="quadrant-chip active" type="button" data-quadrant="do" title="重要且紧急">重要且紧急</button>
               </div>
               <div class="due-date-picker">
-                <button class="due-date-btn" id="due-date-btn" type="button" title="&#x8BBE;&#x7F6E;&#x622A;&#x6B62;&#x65E5;&#x671F;">&#x622A;&#x6B62;&#x65E5;&#x671F;</button>
-                <input type="date" id="due-date-input" class="due-date-input" tabindex="-1" />
+                <button class="due-date-btn" id="due-date-btn" type="button" title="设置截止日期" aria-label="设置截止日期">
+                  <svg class="due-date-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span class="due-date-dot"></span>
+                </button>
+                <div class="dp-popover hidden" id="date-popover" role="dialog" aria-modal="true" aria-label="选择截止日期">
+                  <div class="dp-header">
+                    <button class="dp-nav" id="dp-prev" type="button" aria-label="上个月">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <span class="dp-title" id="dp-title"></span>
+                    <button class="dp-nav" id="dp-next" type="button" aria-label="下个月">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                  </div>
+                  <div class="dp-weekdays">
+                    <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+                  </div>
+                  <div class="dp-grid" id="dp-grid"></div>
+                  <div class="dp-footer">
+                    <button class="dp-action" id="dp-today-btn" type="button">今天</button>
+                    <button class="dp-action dp-action-danger" id="dp-clear-btn" type="button">清除</button>
+                  </div>
+                </div>
               </div>
             </div>
           </section>

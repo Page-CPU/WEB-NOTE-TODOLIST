@@ -18,6 +18,7 @@ import {
 import { initFeedback } from "./features/feedback.js";
 import { addTodo, setFilter, setSelectedQuadrant, syncDueDateButton } from "./features/todos.js";
 import { initMarkdownToolbar, initMarkdownShortcuts } from "./features/markdown-toolbar.js";
+import { initDatePicker } from "./features/date-picker.js";
 import { initMobileNavigation, setMobileTasksView } from "./features/navigation.js";
 import { dom, quadrantMenuRoot, showToast, removeToast, hideSkeleton } from "./ui/dom.js";
 import { renderTodos, closeQuadrantMenu } from "./ui/render.js";
@@ -69,27 +70,9 @@ if (dom.todoQuadrantPicker) {
   });
 }
 
-// ── 截止日期选择 ──────────────────────────────────────────────────────────────
+// ── 截止日期选择（自定义日历弹层） ───────────────────────────────────────────
 
-if (dom.dueDateBtn && dom.dueDateInput) {
-  dom.dueDateBtn.addEventListener("click", () => {
-    if (state.selectedDueDate) {
-      state.selectedDueDate = "";
-      syncDueDateButton();
-    } else {
-      dom.dueDateInput.value = "";
-      if (typeof dom.dueDateInput.showPicker === "function") {
-        try { dom.dueDateInput.showPicker(); } catch {}
-      } else {
-        dom.dueDateInput.click();
-      }
-    }
-  });
-  dom.dueDateInput.addEventListener("change", () => {
-    state.selectedDueDate = dom.dueDateInput.value || "";
-    syncDueDateButton();
-  });
-}
+initDatePicker();
 
 // ── 新增任务 ──────────────────────────────────────────────────────────────────
 

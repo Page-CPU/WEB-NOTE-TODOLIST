@@ -268,10 +268,13 @@ export function syncDueDateButton() {
   if (!btn) return;
   if (state.selectedDueDate) {
     const d = new Date(state.selectedDueDate + "T00:00:00");
-    btn.textContent = `${d.getMonth() + 1}/${d.getDate()}`;
+    const label = `截止日期：${d.getMonth() + 1}月${d.getDate()}日`;
+    btn.title = label;
+    btn.setAttribute("aria-label", label);
     btn.classList.add("has-date");
   } else {
-    btn.textContent = "截止日期";
+    btn.title = "设置截止日期";
+    btn.setAttribute("aria-label", "设置截止日期");
     btn.classList.remove("has-date");
   }
 }

@@ -85,6 +85,29 @@ export function setEditorMode(mode) {
   areaWrap.classList.toggle("hidden", isPreview);
   previewEl.classList.toggle("hidden", !isPreview);
 
+  // 预览模式下隐藏编辑态专属控件（密度切换、Md 按钮、Markdown 工具栏）
+  const densityToggle = document.getElementById("density-toggle");
+  const mdBlockInsert = document.getElementById("md-block-insert");
+  const mdToolbar = document.getElementById("md-toolbar");
+  const mdToggleBtn = document.getElementById("md-toggle-btn");
+
+  if (densityToggle) densityToggle.classList.toggle("hidden", isPreview);
+  if (mdBlockInsert) mdBlockInsert.classList.toggle("hidden", isPreview);
+
+  if (isPreview) {
+    // 预览时强制收起工具栏，同步 Md 按钮 active 状态
+    if (mdToolbar) mdToolbar.classList.add("hidden");
+    if (mdToggleBtn) mdToggleBtn.classList.remove("active");
+  } else {
+    // 切回编辑时，从 localStorage 恢复工具栏偏好
+    try {
+      if (localStorage.getItem("md-toolbar-visible") === "1") {
+        if (mdToolbar) mdToolbar.classList.remove("hidden");
+        if (mdToggleBtn) mdToggleBtn.classList.add("active");
+      }
+    } catch {}
+  }
+
   if (toggleGroup) {
     toggleGroup.querySelectorAll(".preview-chip").forEach((chip) => {
       chip.classList.toggle("active", chip.dataset.mode === mode);

@@ -7,7 +7,6 @@ export const dom = {
   todoInput:           document.getElementById("todo-input"),
   todoQuadrantPicker:  document.getElementById("todo-quadrant"),
   dueDateBtn:          document.getElementById("due-date-btn"),
-  dueDateInput:        document.getElementById("due-date-input"),
   addBtn:              document.getElementById("add-btn"),
   todoList:            document.getElementById("todo-list"),
   openQuadrantsBtn:    document.getElementById("open-quadrants-btn"),
