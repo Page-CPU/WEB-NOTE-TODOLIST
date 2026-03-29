@@ -32,38 +32,40 @@
         </div>
         <div class="sidebar-panel">
           
-          <!-- Status Bar: 替代原 brand-block，更克制，承载关键状态 -->
+          <!-- Status Bar: 两段式布局 —— 第一层核心信息，第二层辅助操作 -->
           <div class="status-bar">
             <div class="status-row-top">
               <button type="button" class="status-brand" id="pages-toggle-btn" title="我的页面">A Note</button>
               <code class="page-chip" id="page-code">/loading</code>
-            </div>
-            <div class="status-row-bottom">
-              <div class="save-indicator" id="save-indicator">
+              <span class="status-spacer"></span>
+              <div class="save-indicator" id="save-indicator" title="">
                 <div class="save-dot"></div>
                 <span id="save-label">自动保存</span>
               </div>
+            </div>
+            <div class="status-row-bottom">
               <span class="meta-chip" id="last-modified">--</span>
-              <span class="status-spacer"></span>
-              <button type="button" class="icon-btn" id="copy-link-btn" title="备份本页链接">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                </svg>
-              </button>
-              <button type="button" class="icon-btn" id="export-btn" title="导出为 Markdown">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-              </button>
-              <button type="button" class="icon-btn feedback-btn" id="feedback-btn" title="提交反馈" aria-label="提交反馈" aria-haspopup="dialog">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-              </button>
-              <button type="button" class="theme-chip" id="theme-toggle-btn" title="切换主题" aria-label="切换主题">暗色</button>
+              <div class="status-actions">
+                <button type="button" class="icon-btn" id="copy-link-btn" title="备份本页链接">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg>
+                </button>
+                <button type="button" class="icon-btn" id="export-btn" title="导出为 Markdown">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                </button>
+                <button type="button" class="icon-btn feedback-btn" id="feedback-btn" title="提交反馈" aria-label="提交反馈" aria-haspopup="dialog">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </button>
+                <button type="button" class="theme-chip" id="theme-toggle-btn" title="切换主题" aria-label="切换主题">暗色</button>
+              </div>
             </div>
           </div>
 

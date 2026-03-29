@@ -2,6 +2,20 @@ import { state } from "../core/state.js";
 import { dom } from "../ui/dom.js";
 
 export function formatLastModified(value) {
+  if (!value) return "--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--";
+  const formatted = new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+  return `最后更改 ${formatted}`;
+}
+
+export function formatLastModifiedFull(value) {
   if (!value) return "最后修改日期 --";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "最后修改日期 --";
@@ -18,9 +32,10 @@ export function formatLastModified(value) {
 
 export function setLastModified(value) {
   if (!dom.lastModified) return;
-  const text = formatLastModified(value);
-  dom.lastModified.textContent = text;
-  dom.lastModified.title = text;
+  const short = formatLastModified(value);
+  const full = formatLastModifiedFull(value);
+  dom.lastModified.textContent = short;
+  dom.lastModified.title = full;
 }
 
 export function markLastModifiedNow() {
